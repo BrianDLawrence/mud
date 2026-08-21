@@ -1,0 +1,75 @@
+{
+  "id": "first-light",
+  "version": 1,
+  "name": "The First Light",
+  "entryRoomId": "lantern-inn",
+  "levelRange": { "min": 1, "max": 5 },
+  "rooms": [
+    {
+      "id": "lantern-inn",
+      "name": "The Copper Lantern",
+      "description": "Firelight warms a low room of dark oak and river stone. Travelers speak quietly beneath a copper lantern that never seems to dim.",
+      "exits": { "north": "rusted-gate", "east": "market-lane" },
+      "features": [
+        {
+          "name": "copper lantern",
+          "aliases": ["lantern", "light"],
+          "description": "Its flame bends toward the north, though no draft touches the room."
+        }
+      ],
+      "creatures": []
+    },
+    {
+      "id": "rusted-gate",
+      "name": "The Rusted Gate",
+      "description": "Rain runs down the remains of an iron portcullis. A narrow road continues north into the marsh. Fresh tracks lead east.",
+      "exits": { "north": "drowned-orchard", "south": "lantern-inn" },
+      "features": [
+        {
+          "name": "fresh tracks",
+          "aliases": ["tracks", "footprints"],
+          "description": "The tracks belong to something heavy and three-legged. They are less than an hour old."
+        }
+      ],
+      "creatures": []
+    },
+    {
+      "id": "market-lane",
+      "name": "Market Lane",
+      "description": "Canvas awnings snap above shuttered stalls. Chalk marks on the cobbles count debts nobody admits to owing.",
+      "exits": { "west": "lantern-inn" },
+      "features": [
+        {
+          "name": "chalk marks",
+          "aliases": ["marks", "chalk"],
+          "description": "Seven names repeat in a careful hand. The eighth has been scrubbed away."
+        }
+      ],
+      "creatures": []
+    },
+    {
+      "id": "drowned-orchard",
+      "name": "The Drowned Orchard",
+      "description": "Rows of dead apple trees rise from black water. Pale fruit hangs from one branch, untouched by rot.",
+      "exits": { "south": "rusted-gate" },
+      "features": [
+        {
+          "name": "pale fruit",
+          "aliases": ["fruit", "apple"],
+          "description": "The skin is cold and flawless. Something shifts inside when you touch it."
+        }
+      ],
+      "creatures": [
+        {
+          "id": "marsh-crawler",
+          "name": "marsh crawler",
+          "aliases": ["crawler", "creature"],
+          "description": "A mud-armored thing balanced on three hooked limbs.",
+          "health": 12,
+          "damage": 3,
+          "experience": 18
+        }
+      ]
+    }
+  ]
+}

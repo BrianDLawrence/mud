@@ -1,0 +1,107 @@
+# Architecture
+
+## Status
+
+This document separates the implemented foundation from the target production architecture. The current slice is deliberately small, but its boundaries are intended to survive the next milestones.
+
+## System shape
+
+```mermaid
+flowchart LR
+  P["Browser terminal"] -->|"authenticated command"| A["Command API"]
+  A --> E["Parser and domain engine"]
+  E --> C["Versioned world content"]
+  E --> R["Character repository"]
+  R --> M[("MongoDB Atlas")]
+  E --> O["Semantic game events"]
+  O --> P
+  O -.-> L[("Event log — planned")]
+  O -.-> B["Realtime fan-out — planned"]
+  AI["AI assistant — planned"] -->|"proposed commands or content"| E
+```
+
+The command engine does not render HTML and does not depend on React, Vercel, MongoDB, or an AI provider. It accepts state plus text and returns next state plus semantic messages.
+
+## Implemented request path
+
+1. The client posts only a text command.
+2. The API resolves a temporary guest character from an HTTP-only cookie.
+3. The repository loads a versioned character snapshot.
+4. The domain engine parses and applies the command.
+5. The repository commits only if the stored version still matches.
+6. The API returns semantic messages and a minimal status summary.
+7. The client maps message tones to its chosen color theme.
+
+The compare-and-set commit prevents two concurrent requests from overwriting each other. The route retries a conflicting command from the newest state a limited number of times.
+
+## Runtime strategy
+
+The first deployment target is Next.js on Vercel using the Node runtime. MongoDB Atlas stores durable state. A reused `MongoClient` avoids opening a new pool for every request.
+
+The world does not require a permanent high-frequency loop. Cooldowns, regeneration, respawns, and timed effects should be derived from timestamps when possible. Work that truly must occur without a player request should use a durable job system rather than an in-memory timer.
+
+Realtime chat and presence will initially use polling or a managed realtime layer. WebSocket handlers must not own durable room or character state because serverless instances are not sticky.
+
+## Data ownership
+
+Planned collections:
+
+| Collection | Purpose |
+|---|---|
+| `users`, `sessions`, `accounts` | Authentication records managed by the auth library |
+| `characters` | Authoritative character snapshots and optimistic version |
+| `world_packs` | Published content versions and metadata |
+| `game_events` | Append-only audit, replay, moderation, and fan-out source |
+| `scripts` | Player automation source, compiled form, permissions, and limits |
+| `script_runs` | Durable execution state if offline automation is introduced |
+| `room_presence` | Ephemeral presence with expiration |
+
+Avoid a single world document. Rooms, entities, and published packs need stable identifiers. Hot mutable state should remain separate from mostly immutable content.
+
+## Authentication plan
+
+The temporary guest cookie exists only so the local vertical slice is playable. Production authentication will use Better Auth with its MongoDB adapter and at least one verified identity method such as Discord, Google, passkey, or verified email.
+
+Account identity, account handle, and character name are separate concepts. Availability endpoints improve UX, while MongoDB unique indexes provide the actual uniqueness guarantee. Handles are normalized for comparison and preserved separately for display.
+
+## Events and rendering
+
+Domain events are semantic:
+
+```json
+{ "tone": "combat", "text": "The marsh crawler claws you for 3 damage." }
+```
+
+Later versions should add stable event types and structured payloads:
+
+```json
+{
+  "type": "combat.damage_received",
+  "actorId": "marsh-crawler",
+  "targetId": "character-123",
+  "amount": 3,
+  "occurredAt": "2026-08-21T18:00:00Z"
+}
+```
+
+Renderers can then produce web text, screen-reader-friendly output, logs, notifications, or a future Telnet stream without changing combat rules.
+
+## Trust boundaries
+
+- Treat all client commands, script output, and AI output as untrusted input.
+- Validate commands and content at the boundary.
+- Never execute user-provided JavaScript or pass it to `eval`.
+- Enforce authorization and game cooldowns on the server.
+- Add idempotency keys before introducing purchases, trading, or background execution.
+- Rate-limit command, login, chat, and username-availability endpoints.
+- Keep secrets and database credentials server-only.
+
+## Scaling path
+
+1. **Foundation:** HTTP commands, MongoDB snapshots, guest development sessions.
+2. **Playable alpha:** verified accounts, append-only events, chat, parties, and production indexes.
+3. **Realtime:** managed pub/sub or Redis-backed fan-out; MongoDB remains authoritative.
+4. **Automation:** sandboxed DSL with online execution, quotas, and complete logs.
+5. **Large worlds:** partition activity by realm and zone; archive cold events; introduce workers where measurements justify them.
+
+The dedicated-game-server option remains available because the engine and content model are independent of the HTTP transport.

@@ -1,0 +1,183 @@
+:root {
+  --background: #070908;
+  --surface: #0b100d;
+  --border: #26342b;
+  --text: #c9d1cb;
+  --muted: #708078;
+  --green: #76d69a;
+  --amber: #e7b45a;
+  --blue: #80b8e8;
+  --red: #ef756f;
+  --violet: #c4a2ef;
+  --white: #f1f4f2;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at 50% -20%, #17221b 0%, transparent 42%),
+    var(--background);
+  color: var(--text);
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  overscroll-behavior: none;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.terminal-shell {
+  width: min(100%, 1040px);
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  margin: 0 auto;
+  display: grid;
+  grid-template-rows: auto 1fr auto auto;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  border-inline: 1px solid var(--border);
+  box-shadow: 0 0 80px rgb(0 0 0 / 45%);
+}
+
+.status-bar,
+.terminal-footer {
+  display: flex;
+  gap: 1.5rem;
+  padding: 0.75rem 1rem;
+  border-color: var(--border);
+  color: var(--muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+}
+
+.status-bar {
+  border-bottom: 1px solid var(--border);
+}
+
+.status-bar > :first-child {
+  color: var(--green);
+  font-weight: 700;
+}
+
+.connection-state {
+  margin-left: auto;
+  color: var(--green);
+}
+
+.transcript {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: clamp(1rem, 4vw, 3rem);
+  scrollbar-color: var(--border) transparent;
+}
+
+.message {
+  max-width: 82ch;
+  margin: 0 0 0.72rem;
+  line-height: 1.65;
+  white-space: pre-wrap;
+}
+
+.tone-system { color: var(--muted); }
+.tone-location { color: var(--white); font-weight: 700; }
+.tone-narrative { color: var(--text); }
+.tone-exits { color: var(--blue); }
+.tone-speech { color: var(--violet); }
+.tone-combat { color: var(--red); }
+.tone-experience { color: var(--amber); }
+.tone-status { color: var(--green); }
+.tone-error { color: var(--red); }
+
+.command-line {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem clamp(1rem, 4vw, 3rem);
+  border-top: 1px solid var(--border);
+  color: var(--green);
+}
+
+.command-line input {
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--white);
+  caret-color: var(--green);
+}
+
+.prompt-status {
+  display: flex;
+  gap: 0.75rem;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.cursor {
+  width: 0.55rem;
+  height: 1rem;
+  background: var(--green);
+  animation: blink 1.1s steps(2, start) infinite;
+}
+
+.terminal-footer {
+  border-top: 1px solid var(--border);
+  justify-content: center;
+  text-align: center;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+@media (max-width: 640px) {
+  .terminal-shell {
+    border-inline: 0;
+  }
+
+  .status-bar {
+    gap: 0.8rem;
+    font-size: 0.64rem;
+  }
+
+  .status-bar > :first-child,
+  .connection-state {
+    display: none;
+  }
+
+  .message {
+    line-height: 1.55;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cursor {
+    animation: none;
+  }
+}
