@@ -28,10 +28,14 @@ The roadmap is ordered by risk reduction rather than feature count.
 
 ## Milestone 2 — Role-playing loop
 
+- [x] Shared room presence with automatic expiration
+- [x] Append-only room events with background polling
+- [x] `WHO`, `SAY`, and `EMOTE` multiplayer commands
+- [x] Durable command and social rate limits
 - Attributes, classes or disciplines, equipment, and derived statistics
 - Initiative/cooldown combat and death recovery
 - NPCs, shops, quests, loot tables, and respawns
-- Parties, room chat, tells, and presence
+- Parties, tells, and managed realtime fan-out
 - Ten levels across a cohesive starting region
 - Admin moderation and event inspection
 
