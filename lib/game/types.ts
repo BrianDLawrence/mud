@@ -40,6 +40,20 @@ export interface CommandResult {
 }
 
 export interface StoredCharacter {
+  name: string;
   state: CharacterState;
   version: number;
+}
+
+export interface CharacterSummary {
+  health: number;
+  maxHealth: number;
+  experience: number;
+  level: number;
+}
+
+export interface CharacterProfile {
+  id: string;
+  name: string;
+  summary: CharacterSummary;
 }

@@ -26,6 +26,7 @@ const helpText = [
   "inventory",
   "say <message>",
   "who",
+  "signout",
   "help",
 ].join(" · ");
 

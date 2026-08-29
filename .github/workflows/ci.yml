@@ -12,6 +12,14 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      MONGODB_URI: mongodb://localhost:27017/nextmud
+      MONGODB_DATABASE: nextmud
+      BETTER_AUTH_SECRET: ci-only-secret-that-is-long-enough-and-never-used
+      BETTER_AUTH_URL: http://localhost:3000
+      DISCORD_CLIENT_ID: ci-discord-client-id
+      DISCORD_CLIENT_SECRET: ci-discord-client-secret
+      NEXT_PUBLIC_DISCORD_CLIENT_ID: ci-discord-client-id
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
