@@ -13,7 +13,7 @@ This repository is an architectural foundation and playable vertical slice. It c
 - **The server is authoritative.** Clients submit commands, never character state.
 - **Start serverless; preserve an exit.** The first runtime targets Vercel and MongoDB without coupling the domain engine to either.
 
-Read [the product premise](docs/PRODUCT.md), [architecture](docs/ARCHITECTURE.md), [authentication setup](docs/AUTHENTICATION.md), [Discord Activity setup](docs/DISCORD_ACTIVITY.md), [world-authoring guide](docs/WORLD_CONTENT.md), and [roadmap](docs/ROADMAP.md) before making a substantial change.
+Read [the product premise](docs/PRODUCT.md), [architecture](docs/ARCHITECTURE.md), [authentication setup](docs/AUTHENTICATION.md), [Discord Activity setup](docs/DISCORD_ACTIVITY.md), [Shared Room Alpha design](docs/MULTIPLAYER.md), [world-authoring guide](docs/WORLD_CONTENT.md), and [roadmap](docs/ROADMAP.md) before making a substantial change.
 
 ## Quick start
 
@@ -37,7 +37,7 @@ npm run build
 
 ## Current gameplay
 
-The initial realm supports verified accounts, unique character names, room descriptions, movement, examination, speech, inventory, stats, rest, and a small combat encounter. Try:
+The initial realm supports verified accounts, unique character names, shared room presence, live speech and emotes, room descriptions, movement, examination, inventory, stats, rest, and a small combat encounter. Try:
 
 ```text
 north
@@ -45,6 +45,9 @@ examine tracks
 north
 attack crawler
 stats
+who
+say The northern road is open.
+emote studies the pale fruit
 ```
 
 ## Repository map

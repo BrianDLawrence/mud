@@ -9,8 +9,12 @@ import {
   useRef,
   useState,
 } from "react";
-import type { GameMessage } from "@/lib/game/types";
-import type { CharacterProfile, CharacterSummary } from "@/lib/game/types";
+import type {
+  CharacterProfile,
+  CharacterSummary,
+  GameMessage,
+  RoomEventView,
+} from "@/lib/game/types";
 
 export function GameTerminal({
   characterProfile,
@@ -40,6 +44,22 @@ export function GameTerminal({
   const transcriptRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const initializedRef = useRef(false);
+  const roomCursorRef = useRef<string | null>(null);
+  const pollingRef = useRef(false);
+  const roomErrorShownRef = useRef(false);
+
+  const roomHeaders = useCallback(
+    () => (authToken ? { authorization: `Bearer ${authToken}` } : undefined),
+    [authToken],
+  );
+
+  const departRoom = useCallback(() => {
+    void fetch("/api/game/room", {
+      method: "DELETE",
+      headers: roomHeaders(),
+      keepalive: true,
+    }).catch(() => undefined);
+  }, [roomHeaders]);
 
   const sendCommand = useCallback(async (value: string, echo = true) => {
     const trimmed = value.trim();
@@ -53,6 +73,7 @@ export function GameTerminal({
     if (["logout", "quit", "signout"].includes(trimmed.toLocaleLowerCase())) {
       setBusy(true);
       try {
+        departRoom();
         await onSignOut();
       } finally {
         setBusy(false);
@@ -102,13 +123,113 @@ export function GameTerminal({
     } finally {
       setBusy(false);
     }
-  }, [authToken, busy, onSignOut]);
+  }, [authToken, busy, departRoom, onSignOut]);
 
   useEffect(() => {
     if (initializedRef.current) return;
     initializedRef.current = true;
     void sendCommand("look", false);
   }, [sendCommand]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function heartbeat() {
+      const response = await fetch("/api/game/room", {
+        method: "POST",
+        headers: roomHeaders(),
+      });
+      const payload = (await response.json()) as {
+        cursor?: string | null;
+        error?: string;
+      };
+      if (!response.ok) {
+        throw new Error(payload.error || "Room presence failed.");
+      }
+      if (roomCursorRef.current === null && payload.cursor) {
+        roomCursorRef.current = payload.cursor;
+      }
+    }
+
+    async function pollEvents() {
+      const cursor = roomCursorRef.current;
+      if (!cursor || pollingRef.current || cancelled) return;
+
+      pollingRef.current = true;
+      try {
+        const response = await fetch(
+          `/api/game/room?after=${encodeURIComponent(cursor)}`,
+          { headers: roomHeaders(), cache: "no-store" },
+        );
+        const payload = (await response.json()) as {
+          cursor?: string | null;
+          events?: RoomEventView[];
+          error?: string;
+        };
+        if (!response.ok || !payload.events) {
+          throw new Error(payload.error || "Room events failed.");
+        }
+        if (payload.cursor) roomCursorRef.current = payload.cursor;
+        if (payload.events.length > 0) {
+          setMessages((current) => [
+            ...current,
+            ...payload.events!.map(({ tone, text }) => ({ tone, text })),
+          ]);
+        }
+        roomErrorShownRef.current = false;
+      } catch (error) {
+        if (!cancelled && !roomErrorShownRef.current) {
+          roomErrorShownRef.current = true;
+          setMessages((current) => [
+            ...current,
+            {
+              tone: "error",
+              text:
+                error instanceof Error
+                  ? error.message
+                  : "Room events are temporarily unavailable.",
+            },
+          ]);
+        }
+      } finally {
+        pollingRef.current = false;
+      }
+    }
+
+    void heartbeat()
+      .then(() => pollEvents())
+      .catch((error: unknown) => {
+        if (!cancelled && !roomErrorShownRef.current) {
+          roomErrorShownRef.current = true;
+          setMessages((current) => [
+            ...current,
+            {
+              tone: "error",
+              text:
+                error instanceof Error
+                  ? error.message
+                  : "Room presence is temporarily unavailable.",
+            },
+          ]);
+        }
+      });
+
+    const heartbeatInterval = window.setInterval(() => {
+      void heartbeat().catch(() => undefined);
+    }, 15_000);
+    const pollingInterval = window.setInterval(() => {
+      void pollEvents();
+    }, 3_000);
+    const handlePageHide = () => departRoom();
+    window.addEventListener("pagehide", handlePageHide);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(heartbeatInterval);
+      window.clearInterval(pollingInterval);
+      window.removeEventListener("pagehide", handlePageHide);
+    };
+  }, [departRoom, roomHeaders]);
 
   useLayoutEffect(() => {
     const transcript = transcriptRef.current;

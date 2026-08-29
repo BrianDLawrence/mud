@@ -17,9 +17,10 @@ flowchart LR
   E --> R["Character repository"]
   R --> M[("MongoDB Atlas")]
   E --> O["Semantic game events"]
-  O --> P
-  O -.-> L[("Event log — planned")]
-  O -.-> B["Realtime fan-out — planned"]
+  O --> L[("MongoDB event log")]
+  L -->|"cursor polling"| P
+  L -->|"cursor polling"| D
+  O -.-> B["Managed realtime fan-out — planned"]
   AI["AI assistant — planned"] -->|"proposed commands or content"| E
 ```
 
@@ -34,6 +35,7 @@ The command engine does not render HTML and does not depend on React, Vercel, Mo
 5. The repository commits only if the stored version still matches.
 6. The API returns semantic messages and a minimal status summary.
 7. The client maps message tones to its chosen color theme.
+8. Room-aware actions append semantic events; clients poll forward from opaque cursors and never replay their own event as a duplicate.
 
 The compare-and-set commit prevents two concurrent requests from overwriting each other. The route retries a conflicting command from the newest state a limited number of times.
 
@@ -43,7 +45,7 @@ The first deployment target is Next.js on Vercel using the Node runtime. MongoDB
 
 The world does not require a permanent high-frequency loop. Cooldowns, regeneration, respawns, and timed effects should be derived from timestamps when possible. Work that truly must occur without a player request should use a durable job system rather than an in-memory timer.
 
-Realtime chat and presence will initially use polling or a managed realtime layer. WebSocket handlers must not own durable room or character state because serverless instances are not sticky.
+Shared Room Alpha uses three-second cursor polling for room events and fifteen-second presence heartbeats. Presence expires after forty-five seconds, while explicit movement and sign-out publish immediate departure events. WebSocket handlers must not own durable room or character state because serverless instances are not sticky. A managed realtime layer can later replace polling without changing event storage or command semantics.
 
 ## Data ownership
 
@@ -55,10 +57,11 @@ Planned collections:
 | `activity_sessions` | Hashed, expiring bearer sessions for the Discord iframe |
 | `characters` | Authoritative character snapshots and optimistic version |
 | `world_packs` | Published content versions and metadata |
-| `game_events` | Append-only audit, replay, moderation, and fan-out source |
+| `game_events` | Seven-day append-only room event feed and future audit/fan-out source |
 | `scripts` | Player automation source, compiled form, permissions, and limits |
 | `script_runs` | Durable execution state if offline automation is introduced |
-| `room_presence` | Ephemeral presence with expiration |
+| `room_presence` | Ephemeral room membership with automatic expiration |
+| `rate_limits` | Expiring fixed-window command and social limits |
 
 Avoid a single world document. Rooms, entities, and published packs need stable identifiers. Hot mutable state should remain separate from mostly immutable content.
 
@@ -76,7 +79,7 @@ Domain events are semantic:
 { "tone": "combat", "text": "The marsh crawler claws you for 3 damage." }
 ```
 
-Later versions should add stable event types and structured payloads:
+Shared Room Alpha adds stable room event types and structured persistence:
 
 ```json
 {

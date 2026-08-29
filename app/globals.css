@@ -155,6 +155,7 @@ input {
 .tone-speech { color: var(--violet); }
 .tone-combat { color: var(--red); }
 .tone-experience { color: var(--amber); }
+.tone-presence { color: var(--blue); font-style: italic; }
 .tone-status { color: var(--green); }
 .tone-error { color: var(--red); }
 

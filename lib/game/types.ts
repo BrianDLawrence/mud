@@ -6,6 +6,7 @@ export const messageTones = [
   "speech",
   "combat",
   "experience",
+  "presence",
   "status",
   "error",
 ] as const;
@@ -56,4 +57,21 @@ export interface CharacterProfile {
   id: string;
   name: string;
   summary: CharacterSummary;
+}
+
+export const roomEventTypes = [
+  "presence.entered",
+  "presence.left",
+  "chat.say",
+  "chat.emote",
+] as const;
+
+export type RoomEventType = (typeof roomEventTypes)[number];
+
+export interface RoomEventView {
+  id: string;
+  type: RoomEventType;
+  tone: MessageTone;
+  text: string;
+  occurredAt: string;
 }

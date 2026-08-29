@@ -25,6 +25,7 @@ const helpText = [
   "stats",
   "inventory",
   "say <message>",
+  "emote <action>",
   "who",
   "signout",
   "help",
@@ -253,6 +254,16 @@ export function executeCommand(
           argument
             ? message("speech", `You say, “${argument}”`)
             : message("error", "Say what?"),
+        ],
+      };
+    case "emote":
+    case "em":
+      return {
+        state,
+        messages: [
+          argument
+            ? message("narrative", `You ${argument}`)
+            : message("error", "Emote what?"),
         ],
       };
     case "who":
