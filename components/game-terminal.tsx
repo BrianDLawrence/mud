@@ -10,32 +10,33 @@ import {
   useState,
 } from "react";
 import type { GameMessage } from "@/lib/game/types";
+import type { CharacterProfile, CharacterSummary } from "@/lib/game/types";
 
-interface CharacterSummary {
-  health: number;
-  maxHealth: number;
-  experience: number;
-  level: number;
-}
-
-const openingMessages: GameMessage[] = [
-  { tone: "system", text: "NEXTMUD // DEVELOPMENT REALM" },
-  { tone: "narrative", text: "A text-first multiplayer world is waking." },
-  { tone: "system", text: "Type HELP for commands. Type CLEAR to clear this terminal." },
-];
-
-export function GameTerminal() {
-  const [messages, setMessages] = useState<GameMessage[]>(openingMessages);
+export function GameTerminal({
+  characterProfile,
+  authToken,
+  connectionLabel = "CONNECTED",
+  footer = "FIRST LIGHT / LOCAL DEVELOPMENT REALM",
+  onSignOut,
+}: Readonly<{
+  characterProfile: CharacterProfile;
+  authToken?: string;
+  connectionLabel?: string;
+  footer?: string;
+  onSignOut: () => Promise<void>;
+}>) {
+  const [messages, setMessages] = useState<GameMessage[]>(() => [
+    { tone: "system", text: "NEXTMUD // DEVELOPMENT REALM" },
+    { tone: "narrative", text: `Welcome, ${characterProfile.name}. The realm remembers you.` },
+    { tone: "system", text: "Type HELP for commands. Type CLEAR to clear this terminal." },
+  ]);
   const [command, setCommand] = useState("");
   const [history, setHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [busy, setBusy] = useState(false);
-  const [character, setCharacter] = useState<CharacterSummary>({
-    health: 50,
-    maxHealth: 50,
-    experience: 0,
-    level: 1,
-  });
+  const [character, setCharacter] = useState<CharacterSummary>(
+    characterProfile.summary,
+  );
   const transcriptRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const initializedRef = useRef(false);
@@ -46,6 +47,16 @@ export function GameTerminal() {
 
     if (trimmed.toLocaleLowerCase() === "clear") {
       setMessages([]);
+      return;
+    }
+
+    if (["logout", "quit", "signout"].includes(trimmed.toLocaleLowerCase())) {
+      setBusy(true);
+      try {
+        await onSignOut();
+      } finally {
+        setBusy(false);
+      }
       return;
     }
 
@@ -62,7 +73,10 @@ export function GameTerminal() {
     try {
       const response = await fetch("/api/game/command", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: {
+          "content-type": "application/json",
+          ...(authToken ? { authorization: `Bearer ${authToken}` } : {}),
+        },
         body: JSON.stringify({ command: trimmed }),
       });
       const payload = (await response.json()) as {
@@ -88,7 +102,7 @@ export function GameTerminal() {
     } finally {
       setBusy(false);
     }
-  }, [busy]);
+  }, [authToken, busy, onSignOut]);
 
   useEffect(() => {
     if (initializedRef.current) return;
@@ -144,10 +158,13 @@ export function GameTerminal() {
     <main className="terminal-shell" onClick={() => inputRef.current?.focus()}>
       <header className="status-bar" aria-label="Character status">
         <span>NEXTMUD</span>
+        <span>{characterProfile.name.toLocaleUpperCase()}</span>
         <span>LVL {character.level}</span>
         <span>HP {character.health}/{character.maxHealth}</span>
         <span>XP {character.experience}</span>
-        <span className="connection-state">{busy ? "WORKING" : "CONNECTED"}</span>
+        <span className="connection-state">
+          {busy ? "WORKING" : connectionLabel}
+        </span>
       </header>
 
       <section
@@ -186,9 +203,7 @@ export function GameTerminal() {
         <span className="cursor" aria-hidden="true" />
       </form>
 
-      <footer className="terminal-footer">
-        FIRST LIGHT / LOCAL DEVELOPMENT REALM
-      </footer>
+      <footer className="terminal-footer">{footer}</footer>
     </main>
   );
 }

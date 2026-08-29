@@ -2,7 +2,7 @@
 
 NextMUD is a text-first, automation-ready multiplayer role-playing world inspired by the social immediacy of classic MUDs. Text is the interface. Color communicates meaning. The server owns the rules.
 
-This repository is an architectural foundation and playable vertical slice. It currently includes a small development realm, a server-side command engine, guest sessions, optional MongoDB persistence, world-pack validation, tests, and a terminal-like web client.
+This repository is an architectural foundation and playable vertical slice. It currently includes a small development realm, a server-side command engine, Discord authentication, account-owned character creation, MongoDB persistence, world-pack validation, tests, and a terminal-like web client.
 
 ## Project principles
 
@@ -13,7 +13,7 @@ This repository is an architectural foundation and playable vertical slice. It c
 - **The server is authoritative.** Clients submit commands, never character state.
 - **Start serverless; preserve an exit.** The first runtime targets Vercel and MongoDB without coupling the domain engine to either.
 
-Read [the product premise](docs/PRODUCT.md), [architecture](docs/ARCHITECTURE.md), [world-authoring guide](docs/WORLD_CONTENT.md), and [roadmap](docs/ROADMAP.md) before making a substantial change.
+Read [the product premise](docs/PRODUCT.md), [architecture](docs/ARCHITECTURE.md), [authentication setup](docs/AUTHENTICATION.md), [Discord Activity setup](docs/DISCORD_ACTIVITY.md), [world-authoring guide](docs/WORLD_CONTENT.md), and [roadmap](docs/ROADMAP.md) before making a substantial change.
 
 ## Quick start
 
@@ -25,7 +25,7 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Open `http://localhost:3000` and type `help`. Without `MONGODB_URI`, local development uses a process-local memory store. That fallback is intentionally rejected in a Vercel production environment.
+Complete the Discord and MongoDB values described in [the authentication guide](docs/AUTHENTICATION.md), then open `http://localhost:3000`. Sign in, create a character, and type `help`.
 
 Useful commands:
 
@@ -37,7 +37,7 @@ npm run build
 
 ## Current gameplay
 
-The initial realm supports room descriptions, movement, examination, speech, inventory, stats, rest, and a small combat encounter. Try:
+The initial realm supports verified accounts, unique character names, room descriptions, movement, examination, speech, inventory, stats, rest, and a small combat encounter. Try:
 
 ```text
 north
@@ -61,9 +61,9 @@ lib/mongodb.ts               Reused MongoDB client
 
 ## Persistence and deployment
 
-Set `MONGODB_URI` and optionally `MONGODB_DATABASE`. The MongoDB store uses optimistic version checks so concurrent commands cannot silently overwrite each other. The current guest cookie is a development bridge, not production authentication.
+Set `MONGODB_URI` and optionally `MONGODB_DATABASE`. The MongoDB store uses optimistic version checks so concurrent commands cannot silently overwrite each other. Better Auth stores Discord-linked identities and sessions in the same database; gameplay endpoints validate the session on every request.
 
-The intended first deployment target is Vercel with MongoDB Atlas. Authentication with Better Auth and verified OAuth/email identity is the next infrastructure milestone.
+The intended first deployment target is Vercel with MongoDB Atlas. The same deployment can run as a normal website or inside a Discord Activity. Both paths resolve the player's Discord identity to the same character. The alpha permits one character per account. Authentication and character names are intentionally separate identities.
 
 ## Contributing
 

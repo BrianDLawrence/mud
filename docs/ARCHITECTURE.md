@@ -9,6 +9,9 @@ This document separates the implemented foundation from the target production ar
 ```mermaid
 flowchart LR
   P["Browser terminal"] -->|"authenticated command"| A["Command API"]
+  D["Discord Activity iframe"] -->|"short-lived bearer session"| A
+  D -->|"authorize code"| X["Activity session exchange"]
+  X -->|"server-side OAuth exchange"| DC["Discord API"]
   A --> E["Parser and domain engine"]
   E --> C["Versioned world content"]
   E --> R["Character repository"]
@@ -25,7 +28,7 @@ The command engine does not render HTML and does not depend on React, Vercel, Mo
 ## Implemented request path
 
 1. The client posts only a text command.
-2. The API resolves a temporary guest character from an HTTP-only cookie.
+2. The identity boundary resolves either a Better Auth cookie or a short-lived, opaque Discord Activity bearer session.
 3. The repository loads a versioned character snapshot.
 4. The domain engine parses and applies the command.
 5. The repository commits only if the stored version still matches.
@@ -48,7 +51,8 @@ Planned collections:
 
 | Collection | Purpose |
 |---|---|
-| `users`, `sessions`, `accounts` | Authentication records managed by the auth library |
+| `user`, `session`, `account`, `verification` | Web authentication records managed by Better Auth |
+| `activity_sessions` | Hashed, expiring bearer sessions for the Discord iframe |
 | `characters` | Authoritative character snapshots and optimistic version |
 | `world_packs` | Published content versions and metadata |
 | `game_events` | Append-only audit, replay, moderation, and fan-out source |
@@ -60,7 +64,7 @@ Avoid a single world document. Rooms, entities, and published packs need stable 
 
 ## Authentication plan
 
-The temporary guest cookie exists only so the local vertical slice is playable. Production authentication will use Better Auth with its MongoDB adapter and at least one verified identity method such as Discord, Google, passkey, or verified email.
+Production web authentication uses Better Auth with its MongoDB adapter and Discord OAuth. Inside Discord, the Embedded App SDK supplies a one-time authorization code; the server exchanges and verifies it before issuing a short-lived opaque game session. Both routes derive the same player ID from the verified Discord user ID. The alpha permits one account-owned character.
 
 Account identity, account handle, and character name are separate concepts. Availability endpoints improve UX, while MongoDB unique indexes provide the actual uniqueness guarantee. Handles are normalized for comparison and preserved separately for display.
 
@@ -98,8 +102,8 @@ Renderers can then produce web text, screen-reader-friendly output, logs, notifi
 
 ## Scaling path
 
-1. **Foundation:** HTTP commands, MongoDB snapshots, guest development sessions.
-2. **Playable alpha:** verified accounts, append-only events, chat, parties, and production indexes.
+1. **Foundation:** HTTP commands, MongoDB snapshots, Discord accounts, and unique characters.
+2. **Playable alpha:** append-only events, chat, parties, and complete production indexes.
 3. **Realtime:** managed pub/sub or Redis-backed fan-out; MongoDB remains authoritative.
 4. **Automation:** sandboxed DSL with online execution, quotas, and complete logs.
 5. **Large worlds:** partition activity by realm and zone; archive cold events; introduce workers where measurements justify them.

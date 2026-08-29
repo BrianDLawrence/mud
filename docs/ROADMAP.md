@@ -15,10 +15,13 @@ The roadmap is ordered by risk reduction rather than feature count.
 
 ## Milestone 1 — Identity and durable alpha
 
-- Better Auth with MongoDB
-- Discord or Google OAuth plus one passwordless option
-- Unique normalized account handles
-- Character creation and names
+- [x] Better Auth with MongoDB
+- [x] Discord OAuth
+- [x] Discord Activity authentication and shared character identity
+- [x] Discord Activity instance participant count
+- [x] Account-owned character creation and globally unique normalized names
+- [ ] Add one passwordless identity option
+- [ ] Account profile and session management
 - Production indexes and migrations/setup command
 - Command idempotency and rate limits
 - Append-only game event records

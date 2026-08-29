@@ -62,6 +62,63 @@ input {
   letter-spacing: 0.08em;
 }
 
+.onboarding-shell {
+  grid-template-rows: auto 1fr auto;
+}
+
+.onboarding-transcript {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.terminal-action {
+  width: fit-content;
+  margin: 1rem 0;
+  padding: 0.75rem 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--green);
+  cursor: pointer;
+  text-align: left;
+}
+
+.terminal-action:focus-visible {
+  color: var(--white);
+  text-decoration: underline;
+  text-underline-offset: 0.35rem;
+}
+
+.terminal-action:disabled {
+  color: var(--muted);
+  cursor: wait;
+}
+
+.creation-command {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: 48rem;
+  margin: 1rem 0;
+  color: var(--green);
+}
+
+.creation-command label {
+  white-space: nowrap;
+}
+
+.creation-command input {
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  outline: 0;
+  background: transparent;
+  color: var(--white);
+  caret-color: var(--green);
+}
+
 .status-bar {
   border-bottom: 1px solid var(--border);
 }

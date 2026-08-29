@@ -1,9 +1,9 @@
-import { randomUUID } from "node:crypto";
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { executeCommand } from "@/lib/game/engine";
+import { getPlayerCharacter } from "@/lib/game/player-character";
 import { getGameStore } from "@/lib/game/store";
+import { getAuthenticatedPlayer } from "@/lib/player-identity";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -22,17 +22,31 @@ export async function POST(request: Request) {
       );
     }
 
-    const cookieStore = await cookies();
-    const existingGuestId = cookieStore.get("nextmud_guest")?.value;
-    const characterId = existingGuestId ?? randomUUID();
+    const player = await getAuthenticatedPlayer(request);
+    if (!player) {
+      return NextResponse.json(
+        { error: "You must sign in before entering the realm." },
+        { status: 401 },
+      );
+    }
+
     const store = getGameStore();
 
     for (let attempt = 0; attempt < 3; attempt += 1) {
-      const character = await store.getOrCreate(characterId);
-      const result = executeCommand(character.state, parsed.data.command);
+      const ownedCharacter = await getPlayerCharacter(store, player);
+      if (!ownedCharacter) {
+        return NextResponse.json(
+          { error: "Create a character before entering the realm." },
+          { status: 404 },
+        );
+      }
+      const result = executeCommand(
+        ownedCharacter.character.state,
+        parsed.data.command,
+      );
       const committed = await store.commit(
-        characterId,
-        character.version,
+        ownedCharacter.id,
+        ownedCharacter.character.version,
         result.state,
       );
 
@@ -46,16 +60,6 @@ export async function POST(request: Request) {
             level: result.state.level,
           },
         });
-
-        if (!existingGuestId) {
-          response.cookies.set("nextmud_guest", characterId, {
-            httpOnly: true,
-            sameSite: "lax",
-            secure: process.env.NODE_ENV === "production",
-            maxAge: 60 * 60 * 24 * 30,
-            path: "/",
-          });
-        }
 
         return response;
       }
