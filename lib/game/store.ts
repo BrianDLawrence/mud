@@ -1,5 +1,8 @@
 import { MongoServerError, type Collection } from "mongodb";
-import { createInitialCharacterState } from "@/lib/game/engine";
+import {
+  createInitialCharacterState,
+  normalizeCharacterState,
+} from "@/lib/game/character-state";
 import type { CharacterState, StoredCharacter } from "@/lib/game/types";
 import { getMongoClient } from "@/lib/mongodb";
 
@@ -22,7 +25,8 @@ export interface GameStore {
 }
 
 function cloneStoredCharacter(character: StoredCharacter): StoredCharacter {
-  return structuredClone(character);
+  const clone = structuredClone(character);
+  return { ...clone, state: normalizeCharacterState(clone.state) };
 }
 
 class MemoryGameStore implements GameStore {
@@ -106,7 +110,7 @@ class MongoGameStore implements GameStore {
 
     return {
       name: character.name,
-      state: character.state,
+      state: normalizeCharacterState(character.state),
       version: character.version,
     };
   }

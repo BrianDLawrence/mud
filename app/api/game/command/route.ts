@@ -16,14 +16,20 @@ const commandRequestSchema = z.object({
 });
 
 function characterSummary(state: {
+  discipline?: "vanguard" | "wayfinder" | "arcanist";
   health: number;
   maxHealth: number;
+  mana: number;
+  maxMana: number;
   experience: number;
   level: number;
 }) {
   return {
+    discipline: state.discipline,
     health: state.health,
     maxHealth: state.maxHealth,
+    mana: state.mana,
+    maxMana: state.maxMana,
     experience: state.experience,
     level: state.level,
   };

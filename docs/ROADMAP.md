@@ -2,7 +2,7 @@
 
 The roadmap is ordered by risk reduction rather than feature count.
 
-## Milestone 0 — Foundation (current)
+## Milestone 0 — Foundation
 
 - Text-only responsive terminal
 - Semantic colored output
@@ -32,11 +32,13 @@ The roadmap is ordered by risk reduction rather than feature count.
 - [x] Append-only room events with background polling
 - [x] `WHO`, `SAY`, and `EMOTE` multiplayer commands
 - [x] Durable command and social rate limits
-- Attributes, classes or disciplines, equipment, and derived statistics
-- Initiative/cooldown combat and death recovery
-- NPCs, shops, quests, loot tables, and respawns
+- [x] Attributes, three disciplines, equipment, and derived statistics
+- [x] Deterministic class abilities, combat, level-ups, and death recovery
+- [x] First NPC quest, loot drops, and level 1–3 boss journey
+- Initiative/cooldown combat and respawns
+- Shops and economy
 - Parties, tells, and managed realtime fan-out
-- Ten levels across a cohesive starting region
+- Levels 4–10 across a cohesive starting region
 - Admin moderation and event inspection
 
 ## Milestone 3 — Extensible world

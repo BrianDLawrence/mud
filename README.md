@@ -2,7 +2,7 @@
 
 NextMUD is a text-first, automation-ready multiplayer role-playing world inspired by the social immediacy of classic MUDs. Text is the interface. Color communicates meaning. The server owns the rules.
 
-This repository is an architectural foundation and playable vertical slice. It currently includes a small development realm, a server-side command engine, Discord authentication, account-owned character creation, MongoDB persistence, world-pack validation, tests, and a terminal-like web client.
+This repository is an architectural foundation and playable vertical slice. It currently includes a level 1–3 adventure, three character disciplines, deterministic combat and class abilities, equipment and loot, an NPC quest and boss, Discord authentication, account-owned character creation, MongoDB persistence, world-pack validation, tests, and a terminal-like web client.
 
 ## Project principles
 
@@ -13,7 +13,7 @@ This repository is an architectural foundation and playable vertical slice. It c
 - **The server is authoritative.** Clients submit commands, never character state.
 - **Start serverless; preserve an exit.** The first runtime targets Vercel and MongoDB without coupling the domain engine to either.
 
-Read [the product premise](docs/PRODUCT.md), [architecture](docs/ARCHITECTURE.md), [authentication setup](docs/AUTHENTICATION.md), [Discord Activity setup](docs/DISCORD_ACTIVITY.md), [Shared Room Alpha design](docs/MULTIPLAYER.md), [world-authoring guide](docs/WORLD_CONTENT.md), and [roadmap](docs/ROADMAP.md) before making a substantial change.
+Read [the product premise](docs/PRODUCT.md), [architecture](docs/ARCHITECTURE.md), [authentication setup](docs/AUTHENTICATION.md), [Discord Activity setup](docs/DISCORD_ACTIVITY.md), [Shared Room Alpha design](docs/MULTIPLAYER.md), [First Adventure design](docs/FIRST_ADVENTURE.md), [world-authoring guide](docs/WORLD_CONTENT.md), and [roadmap](docs/ROADMAP.md) before making a substantial change.
 
 ## Quick start
 
@@ -37,14 +37,20 @@ npm run build
 
 ## Current gameplay
 
-The initial realm supports verified accounts, unique character names, shared room presence, live speech and emotes, room descriptions, movement, examination, inventory, stats, rest, and a small combat encounter. Try:
+The initial realm supports verified accounts, unique character names, shared room presence, live speech and emotes, room descriptions, movement, examination, three disciplines, inventory and equipment, abilities, deterministic combat, loot, death recovery, quests, a boss, and level progression. New and existing characters choose a permanent alpha discipline before entering. Try:
 
 ```text
+talk keeper
+accept orchard
 north
 examine tracks
 north
 attack crawler
-stats
+loot
+equip crawler chitin
+down
+attack keeper
+quests
 who
 say The northern road is open.
 emote studies the pale fruit

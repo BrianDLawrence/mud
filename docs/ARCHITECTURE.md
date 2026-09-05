@@ -24,7 +24,7 @@ flowchart LR
   AI["AI assistant — planned"] -->|"proposed commands or content"| E
 ```
 
-The command engine does not render HTML and does not depend on React, Vercel, MongoDB, or an AI provider. It accepts state plus text and returns next state plus semantic messages.
+The command engine does not render HTML and does not depend on React, Vercel, MongoDB, or an AI provider. It accepts state plus text and returns next state plus semantic messages. Discipline rules and item definitions are pure data modules; NPCs, creatures, loot references, quests, and dialogue live in the validated world pack.
 
 ## Implemented request path
 
@@ -36,6 +36,8 @@ The command engine does not render HTML and does not depend on React, Vercel, Mo
 6. The API returns semantic messages and a minimal status summary.
 7. The client maps message tones to its chosen color theme.
 8. Room-aware actions append semantic events; clients poll forward from opaque cursors and never replay their own event as a duplicate.
+
+Discipline selection is a separate authenticated compare-and-set mutation. It grants a starter item and establishes authoritative attributes, HP, and optional mana before the command terminal opens.
 
 The compare-and-set commit prevents two concurrent requests from overwriting each other. The route retries a conflicting command from the newest state a limited number of times.
 
@@ -55,7 +57,7 @@ Planned collections:
 |---|---|
 | `user`, `session`, `account`, `verification` | Web authentication records managed by Better Auth |
 | `activity_sessions` | Hashed, expiring bearer sessions for the Discord iframe |
-| `characters` | Authoritative character snapshots and optimistic version |
+| `characters` | Authoritative character snapshots, discipline, progression, equipment, quests, and optimistic version |
 | `world_packs` | Published content versions and metadata |
 | `game_events` | Seven-day append-only room event feed and future audit/fan-out source |
 | `scripts` | Player automation source, compiled form, permissions, and limits |
@@ -70,6 +72,8 @@ Avoid a single world document. Rooms, entities, and published packs need stable 
 Production web authentication uses Better Auth with its MongoDB adapter and Discord OAuth. Inside Discord, the Embedded App SDK supplies a one-time authorization code; the server exchanges and verifies it before issuing a short-lived opaque game session. Both routes derive the same player ID from the verified Discord user ID. The alpha permits one account-owned character.
 
 Account identity, account handle, and character name are separate concepts. Availability endpoints improve UX, while MongoDB unique indexes provide the actual uniqueness guarantee. Handles are normalized for comparison and preserved separately for display.
+
+Character reads pass through a backward-compatible normalizer. Fields added by the First Adventure receive safe defaults and legacy inventory labels become stable item IDs. A later successful optimistic commit stores the upgraded shape without a deployment-time migration.
 
 ## Events and rendering
 

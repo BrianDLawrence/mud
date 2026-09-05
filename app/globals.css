@@ -119,6 +119,10 @@ input {
   caret-color: var(--green);
 }
 
+.discipline-option {
+  max-width: 90ch;
+}
+
 .status-bar {
   border-bottom: 1px solid var(--border);
 }
