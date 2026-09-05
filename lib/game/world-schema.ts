@@ -22,6 +22,8 @@ const creatureSchema = z.object({
   description: z.string().min(1),
   health: z.number().int().positive(),
   damage: z.number().int().nonnegative(),
+  damageType: z.enum(["physical", "magic"]).default("physical"),
+  attackIntervalMs: z.number().int().min(1000).max(10000).default(3000),
   experience: z.number().int().nonnegative(),
   loot: z.array(z.string().min(1)).default([]),
 });

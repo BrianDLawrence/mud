@@ -17,7 +17,7 @@ The `first-light` example demonstrates the initial schema:
 }
 ```
 
-Each room has a stable ID, description, exits, examinable features, creatures, and NPCs. A world pack can also define quests with an NPC giver, a defeat objective, dialogue for each stage, and XP/item rewards. Creature definitions can reference deterministic loot item IDs. IDs are machine-facing contracts: renaming display text is safe; changing a published ID requires a migration.
+Each room has a stable ID, description, exits, examinable features, creatures, and NPCs. A world pack can also define quests with an NPC giver, a defeat objective, dialogue for each stage, and XP/item rewards. Creature definitions reference deterministic loot item IDs and declare `physical` or `magic` damage plus an attack interval in milliseconds. IDs are machine-facing contracts: renaming display text is safe; changing a published ID requires a migration.
 
 The validator checks room exits, NPC quest references, quest givers, quest creature targets, and item references at application start. Item mechanics live in `lib/game/items.ts`; world packs refer to those stable IDs rather than duplicating equipment rules.
 

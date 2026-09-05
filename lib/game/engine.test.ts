@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
+  advanceCombat,
+  attacksPerVolley,
   createInitialCharacterState,
+  criticalChance,
   executeCommand,
+  magicHealingReceived,
+  playerAttackIntervalMs,
 } from "@/lib/game/engine";
 import { normalizeCharacterState } from "@/lib/game/character-state";
 import { chooseDiscipline } from "@/lib/game/disciplines";
@@ -19,18 +24,19 @@ function travel(state: CharacterState, ...commands: string[]): CharacterState {
   );
 }
 
-function attackUntilDefeated(
+function fightUntilDefeated(
   state: CharacterState,
   target: string,
   command = `attack ${target}`,
 ): CharacterState {
-  let current = state;
+  let nowMs = 10_000;
+  let current = executeCommand(state, command, { nowMs }).state;
   for (let count = 0; count < 12; count += 1) {
-    const result = executeCommand(current, command);
+    if (!current.combat) return current;
+    nowMs += 10_000;
+    const result = advanceCombat(current, nowMs);
     current = result.state;
-    if (current.defeatedCreatureIds.some((id) => target.includes(id) || id.includes(target))) {
-      return current;
-    }
+    if (!current.combat) return current;
   }
   throw new Error(`${target} was not defeated.`);
 }
@@ -56,6 +62,42 @@ describe("character progression", () => {
     expect(state.equipment.focus).toBe("ash-staff");
     expect(state.inventory).toContain("ash-staff");
     expect(chooseDiscipline(state, "vanguard")).toEqual(state);
+  });
+
+  it("adds Paladin, Witch Hunter, and Rogue with appropriate armor kits", () => {
+    const paladin = adventurer("paladin");
+    const witchHunter = adventurer("witchhunter");
+    const rogue = adventurer("rogue");
+
+    expect(paladin.equipment).toMatchObject({
+      weapon: "sunward-mace",
+      armor: "sunward-mail",
+    });
+    expect(paladin.maxMana).toBeGreaterThan(0);
+    expect(witchHunter.equipment.armor).toBe("hexhide-coat");
+    expect(witchHunter.maxMana).toBe(0);
+    expect(magicHealingReceived(witchHunter, 14)).toBe(7);
+    expect(rogue.equipment).toMatchObject({
+      weapon: "gutter-knife",
+      armor: "nightweave-vest",
+    });
+    expect(rogue.attributes.agility).toBe(7);
+  });
+
+  it("offers pre-expansion characters one discipline reselection", () => {
+    const legacyState = {
+      ...adventurer("vanguard"),
+      disciplineRevision: undefined,
+    };
+    const oldVanguard = normalizeCharacterState(
+      legacyState as unknown as CharacterState,
+    );
+    expect(oldVanguard.disciplineRevision).toBe(1);
+    const rebound = chooseDiscipline(oldVanguard, "rogue");
+
+    expect(rebound.discipline).toBe("rogue");
+    expect(rebound.disciplineRevision).toBe(2);
+    expect(chooseDiscipline(rebound, "paladin")).toEqual(rebound);
   });
 
   it("upgrades legacy character snapshots without losing progress", () => {
@@ -112,16 +154,22 @@ describe("command engine", () => {
   it("uses deterministic armor, combat progress, experience, and loot", () => {
     const atCrawler = travel(adventurer(), "north", "north");
 
-    const firstAttack = executeCommand(atCrawler, "attack crawler");
+    const firstAttack = executeCommand(atCrawler, "attack crawler", {
+      nowMs: 1_000,
+    });
     expect(firstAttack.state.combat?.health).toBe(4);
-    expect(firstAttack.state.health).toBe(62);
+    expect(firstAttack.state.health).toBe(64);
 
-    const secondAttack = executeCommand(firstAttack.state, "attack crawler");
-    expect(secondAttack.state.combat).toBeUndefined();
-    expect(secondAttack.state.experience).toBe(30);
-    expect(secondAttack.state.defeatedCreatureIds).toContain("marsh-crawler");
+    const retaliation = advanceCombat(firstAttack.state, 3_600);
+    expect(retaliation.state.health).toBe(63);
+    expect(retaliation.state.combat?.health).toBe(4);
 
-    const looted = executeCommand(secondAttack.state, "loot");
+    const secondVolley = advanceCombat(retaliation.state, 3_800);
+    expect(secondVolley.state.combat).toBeUndefined();
+    expect(secondVolley.state.experience).toBe(30);
+    expect(secondVolley.state.defeatedCreatureIds).toContain("marsh-crawler");
+
+    const looted = executeCommand(secondVolley.state, "loot");
     expect(looted.state.inventory).toContain("crawler-chitin");
     const equipped = executeCommand(looted.state, "equip crawler chitin");
     expect(equipped.state.equipment.armor).toBe("crawler-chitin");
@@ -130,8 +178,8 @@ describe("command engine", () => {
   it("gives each discipline a distinct combat ability", () => {
     const wayfinder = travel(adventurer("wayfinder"), "north", "north");
     const aimed = executeCommand(wayfinder, "aim").state;
-    const arrow = executeCommand(aimed, "attack crawler");
-    expect(arrow.state.combat?.health).toBe(1);
+    const arrow = executeCommand(aimed, "attack crawler", { nowMs: 1_000 });
+    expect(arrow.state.defeatedCreatureIds).toContain("marsh-crawler");
 
     const arcanist = travel(adventurer("arcanist"), "north", "north");
     const ember = executeCommand(arcanist, "cast ember crawler");
@@ -142,6 +190,61 @@ describe("command engine", () => {
     expect(vanguard.state.guarding).toBe(true);
   });
 
+  it("uses agility for one, two, or three attacks and critical chance", () => {
+    expect(attacksPerVolley(2)).toBe(1);
+    expect(attacksPerVolley(5)).toBe(2);
+    expect(attacksPerVolley(7)).toBe(3);
+    expect(playerAttackIntervalMs(7)).toBeLessThan(playerAttackIntervalMs(2));
+    expect(criticalChance(7)).toBeGreaterThan(criticalChance(2));
+
+    const atBoss = travel(adventurer("rogue"), "north", "north", "down");
+    const quickVolley = executeCommand(atBoss, "attack keeper", { nowMs: 1_000 });
+    expect(quickVolley.messages.filter((entry) => entry.text.includes("You strike"))).toHaveLength(3);
+    expect(quickVolley.messages.some((entry) => entry.text.includes("CRITICAL"))).toBe(true);
+
+    const rogue = travel(adventurer("rogue"), "north", "north");
+    const hidden = executeCommand(rogue, "sneak").state;
+    const backstab = executeCommand(hidden, "backstab crawler", {
+      nowMs: 1_000,
+    });
+    expect(backstab.state.defeatedCreatureIds).toContain("marsh-crawler");
+    expect(backstab.messages[0]?.text).toContain("CRITICAL");
+  });
+
+  it("lets Paladins use minor holy magic", () => {
+    const paladin = travel(adventurer("paladin"), "north", "north");
+    const smite = executeCommand(paladin, "smite crawler", { nowMs: 1_000 });
+    expect(smite.state.mana).toBe(paladin.mana - 4);
+    expect(smite.state.combat).toBeDefined();
+
+    const wounded = { ...smite.state, health: smite.state.maxHealth - 10 };
+    const prayer = executeCommand(wounded, "pray");
+    expect(prayer.state.health).toBe(prayer.state.maxHealth);
+    expect(prayer.state.mana).toBe(smite.state.mana - 6);
+  });
+
+  it("applies Witch Hunter magic resistance but not armor to magic damage", () => {
+    const witchHunter = travel(adventurer("witchhunter"), "north", "north", "down");
+    const started = executeCommand(witchHunter, "attack keeper", { nowMs: 1_000 });
+    const stopped = executeCommand(started.state, "stop");
+    const struck = advanceCombat(stopped.state, 3_400);
+
+    expect(struck.state.health).toBe(witchHunter.health - 3);
+    expect(struck.messages.some((entry) => entry.text.includes("resist 60%"))).toBe(true);
+  });
+
+  it("stops player attacks while the enemy keeps attacking", () => {
+    const atCrawler = travel(adventurer(), "north", "north");
+    const started = executeCommand(atCrawler, "attack crawler", { nowMs: 1_000 });
+    const stopped = executeCommand(started.state, "stop");
+    const enemyTurn = advanceCombat(stopped.state, 3_600);
+
+    expect(stopped.state.combat?.playerAttacking).toBe(false);
+    expect(enemyTurn.state.combat?.health).toBe(4);
+    expect(enemyTurn.state.health).toBe(63);
+    expect(enemyTurn.state.combat?.playerAttacking).toBe(false);
+  });
+
   it("runs the first quest through its boss and reaches level three", () => {
     let state = adventurer();
     expect(executeCommand(state, "talk keeper").messages.at(-1)?.text).toContain(
@@ -149,9 +252,9 @@ describe("command engine", () => {
     );
     state = executeCommand(state, "accept orchard").state;
     state = travel(state, "north", "north");
-    state = attackUntilDefeated(state, "crawler");
+    state = fightUntilDefeated(state, "crawler");
     state = travel(state, "down");
-    state = attackUntilDefeated(state, "rootbound-keeper", "attack keeper");
+    state = fightUntilDefeated(state, "rootbound-keeper", "attack keeper");
     expect(state.level).toBe(2);
     expect(executeCommand(state, "quests").messages[0].text).toContain(
       "return to the quest giver",
@@ -170,7 +273,8 @@ describe("command engine", () => {
   it("recovers defeated characters at the inn without an XP penalty", () => {
     const atBoss = travel(adventurer(), "north", "north", "down");
     const wounded = { ...atBoss, health: 1, experience: 42 };
-    const result = executeCommand(wounded, "attack keeper");
+    const started = executeCommand(wounded, "attack keeper", { nowMs: 1_000 });
+    const result = advanceCombat(started.state, 3_400);
 
     expect(result.state.roomId).toBe("lantern-inn");
     expect(result.state.health).toBe(32);

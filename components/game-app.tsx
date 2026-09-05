@@ -269,9 +269,18 @@ function DisciplineSelection({
     event.preventDefault();
     if (working) return;
 
-    const discipline = choice.trim().toLocaleLowerCase() as DisciplineId;
-    if (!(discipline in disciplines)) {
-      setError("Type Vanguard, Wayfinder, or Arcanist.");
+    const rawChoice = choice.trim().toLocaleLowerCase();
+    const normalizedChoice = (
+      rawChoice === "witch hunter"
+        ? "witchhunter"
+        : rawChoice === "roque"
+          ? "rogue"
+          : rawChoice
+    ) as DisciplineId;
+    if (!(normalizedChoice in disciplines)) {
+      setError(
+        "Type Vanguard, Wayfinder, Arcanist, Paladin, Witch Hunter, or Rogue.",
+      );
       return;
     }
 
@@ -284,7 +293,7 @@ function DisciplineSelection({
           "content-type": "application/json",
           ...(authToken ? { authorization: `Bearer ${authToken}` } : {}),
         },
-        body: JSON.stringify({ discipline }),
+        body: JSON.stringify({ discipline: normalizedChoice }),
       });
       const payload = (await response.json()) as {
         character?: CharacterProfile;
@@ -310,8 +319,10 @@ function DisciplineSelection({
       <p className="message tone-system">CHARACTER CONFIRMED // {character.name.toLocaleUpperCase()}</p>
       <p className="message tone-location">Choose your discipline.</p>
       <p className="message tone-narrative">
-        This choice is permanent during the alpha. Each path can complete the
-        First Adventure, but each fights differently.
+        {character.discipline
+          ? "The roster has expanded. You may reaffirm your path or change it once before it becomes permanent again."
+          : "This choice is permanent during the alpha."} Each path can complete
+        the First Adventure, but each fights differently.
       </p>
       {Object.values(disciplines).map((discipline) => (
         <p className="message discipline-option" key={discipline.id}>
@@ -424,7 +435,7 @@ function AuthenticatedGame({
     );
   }
 
-  if (!characterState.character.discipline) {
+  if (characterState.character.disciplineSelectionRequired) {
     return (
       <DisciplineSelection
         character={characterState.character}

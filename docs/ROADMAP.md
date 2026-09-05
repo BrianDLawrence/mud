@@ -32,10 +32,10 @@ The roadmap is ordered by risk reduction rather than feature count.
 - [x] Append-only room events with background polling
 - [x] `WHO`, `SAY`, and `EMOTE` multiplayer commands
 - [x] Durable command and social rate limits
-- [x] Attributes, three disciplines, equipment, and derived statistics
-- [x] Deterministic class abilities, combat, level-ups, and death recovery
+- [x] Attributes, six disciplines, armor training, equipment, and derived statistics
+- [x] Timed automatic combat, stop/resume, criticals, multi-hit speed, level-ups, and death recovery
 - [x] First NPC quest, loot drops, and level 1–3 boss journey
-- Initiative/cooldown combat and respawns
+- Encounter initiative, active cooldown abilities, and respawns
 - Shops and economy
 - Parties, tells, and managed realtime fan-out
 - Levels 4–10 across a cohesive starting region
