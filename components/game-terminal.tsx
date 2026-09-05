@@ -282,6 +282,7 @@ export function GameTerminal({
         <span>{characterProfile.name.toLocaleUpperCase()}</span>
         <span>LVL {character.level}</span>
         <span>HP {character.health}/{character.maxHealth}</span>
+        {character.maxMana > 0 ? <span>MP {character.mana}/{character.maxMana}</span> : null}
         <span>XP {character.experience}</span>
         <span className="connection-state">
           {busy ? "WORKING" : connectionLabel}
@@ -305,9 +306,10 @@ export function GameTerminal({
         <label className="sr-only" htmlFor="game-command">Enter a game command</label>
         <span
           className="prompt-status"
-          aria-label={`Health ${character.health} of ${character.maxHealth}`}
+          aria-label={`Health ${character.health} of ${character.maxHealth}${character.maxMana > 0 ? `, mana ${character.mana} of ${character.maxMana}` : ""}`}
         >
           <span>HP {character.health}/{character.maxHealth}</span>
+          {character.maxMana > 0 ? <span>MP {character.mana}/{character.maxMana}</span> : null}
           <span aria-hidden="true">&gt;</span>
         </span>
         <input

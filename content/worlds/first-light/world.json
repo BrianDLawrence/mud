@@ -1,9 +1,30 @@
 {
   "id": "first-light",
-  "version": 1,
+  "version": 2,
   "name": "The First Light",
   "entryRoomId": "lantern-inn",
   "levelRange": { "min": 1, "max": 5 },
+  "quests": [
+    {
+      "id": "beneath-black-roots",
+      "title": "Beneath Black Roots",
+      "aliases": ["orchard", "roots", "black roots"],
+      "giverNpcId": "keeper-vale",
+      "summary": "Find the thing waking beneath the Drowned Orchard and end it.",
+      "objective": {
+        "type": "defeat",
+        "creatureId": "rootbound-keeper"
+      },
+      "reward": {
+        "experience": 80,
+        "itemIds": ["pale-heart-charm"]
+      },
+      "offeredDialogue": "The orchard has started breathing again. Follow the black water below its roots and silence what you find.",
+      "activeDialogue": "The old roots drink from a cellar beneath the orchard. Whatever stirs there will not climb into my inn.",
+      "readyDialogue": "The water has gone still. You found the buried thing, didn't you?",
+      "completionDialogue": "Keep this charm. The pale heart remembers the hand that freed it."
+    }
+  ],
   "rooms": [
     {
       "id": "lantern-inn",
@@ -17,7 +38,17 @@
           "description": "Its flame bends toward the north, though no draft touches the room."
         }
       ],
-      "creatures": []
+      "creatures": [],
+      "npcs": [
+        {
+          "id": "keeper-vale",
+          "name": "Keeper Vale",
+          "aliases": ["keeper", "vale", "innkeeper"],
+          "description": "A silver-haired innkeeper watches the northern door with one hand resting on a ring of iron keys.",
+          "dialogue": "Keeper Vale says, “Warm yourself while you can. The marsh has a long memory tonight.”",
+          "questIds": ["beneath-black-roots"]
+        }
+      ]
     },
     {
       "id": "rusted-gate",
@@ -31,7 +62,8 @@
           "description": "The tracks belong to something heavy and three-legged. They are less than an hour old."
         }
       ],
-      "creatures": []
+      "creatures": [],
+      "npcs": []
     },
     {
       "id": "market-lane",
@@ -45,13 +77,14 @@
           "description": "Seven names repeat in a careful hand. The eighth has been scrubbed away."
         }
       ],
-      "creatures": []
+      "creatures": [],
+      "npcs": []
     },
     {
       "id": "drowned-orchard",
       "name": "The Drowned Orchard",
       "description": "Rows of dead apple trees rise from black water. Pale fruit hangs from one branch, untouched by rot.",
-      "exits": { "south": "rusted-gate" },
+      "exits": { "south": "rusted-gate", "down": "root-cellar" },
       "features": [
         {
           "name": "pale fruit",
@@ -67,9 +100,37 @@
           "description": "A mud-armored thing balanced on three hooked limbs.",
           "health": 12,
           "damage": 3,
-          "experience": 18
+          "experience": 30,
+          "loot": ["crawler-chitin"]
         }
-      ]
+      ],
+      "npcs": []
+    },
+    {
+      "id": "root-cellar",
+      "name": "The Root Cellar",
+      "description": "Black roots knot through a flooded stone vault. At its center, a wooden figure rises and falls as though the whole orchard breathes through it.",
+      "exits": { "up": "drowned-orchard" },
+      "features": [
+        {
+          "name": "buried heart",
+          "aliases": ["heart", "roots", "black roots"],
+          "description": "A pulse travels through the largest root. Each beat sends a ring across the dark water."
+        }
+      ],
+      "creatures": [
+        {
+          "id": "rootbound-keeper",
+          "name": "rootbound keeper",
+          "aliases": ["keeper", "rootbound", "guardian"],
+          "description": "A tall shape of drowned wood and rusted orchard tools, moving to the rhythm beneath the roots.",
+          "health": 28,
+          "damage": 6,
+          "experience": 90,
+          "loot": []
+        }
+      ],
+      "npcs": []
     }
   ]
 }

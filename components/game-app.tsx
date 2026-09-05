@@ -15,7 +15,8 @@ import {
 } from "react";
 import { GameTerminal } from "@/components/game-terminal";
 import { authClient } from "@/lib/auth-client";
-import type { CharacterProfile } from "@/lib/game/types";
+import { disciplines } from "@/lib/game/disciplines";
+import type { CharacterProfile, DisciplineId } from "@/lib/game/types";
 
 type CharacterLoadState =
   | { status: "loading" }
@@ -246,6 +247,102 @@ function CharacterCreation({
   );
 }
 
+function DisciplineSelection({
+  character,
+  authToken,
+  onChosen,
+}: Readonly<{
+  character: CharacterProfile;
+  authToken?: string;
+  onChosen: (character: CharacterProfile) => void;
+}>) {
+  const [choice, setChoice] = useState("");
+  const [error, setError] = useState<string>();
+  const [working, setWorking] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!working) inputRef.current?.focus({ preventScroll: true });
+  }, [working]);
+
+  async function choose(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (working) return;
+
+    const discipline = choice.trim().toLocaleLowerCase() as DisciplineId;
+    if (!(discipline in disciplines)) {
+      setError("Type Vanguard, Wayfinder, or Arcanist.");
+      return;
+    }
+
+    setWorking(true);
+    setError(undefined);
+    try {
+      const response = await fetch("/api/character", {
+        method: "PATCH",
+        headers: {
+          "content-type": "application/json",
+          ...(authToken ? { authorization: `Bearer ${authToken}` } : {}),
+        },
+        body: JSON.stringify({ discipline }),
+      });
+      const payload = (await response.json()) as {
+        character?: CharacterProfile;
+        error?: string;
+      };
+      if (!response.ok || !payload.character) {
+        throw new Error(payload.error || "Discipline selection failed.");
+      }
+      onChosen(payload.character);
+    } catch (selectionError) {
+      setError(
+        selectionError instanceof Error
+          ? selectionError.message
+          : "Discipline selection failed.",
+      );
+    } finally {
+      setWorking(false);
+    }
+  }
+
+  return (
+    <TerminalFrame footer="FIRST LIGHT / THE THREE PATHS">
+      <p className="message tone-system">CHARACTER CONFIRMED // {character.name.toLocaleUpperCase()}</p>
+      <p className="message tone-location">Choose your discipline.</p>
+      <p className="message tone-narrative">
+        This choice is permanent during the alpha. Each path can complete the
+        First Adventure, but each fights differently.
+      </p>
+      {Object.values(disciplines).map((discipline) => (
+        <p className="message discipline-option" key={discipline.id}>
+          <span className="tone-status">{discipline.name.toLocaleUpperCase()}</span>
+          {` — ${discipline.identity} HP ${discipline.maxHealth}${discipline.maxMana > 0 ? ` / MP ${discipline.maxMana}` : ""}. ${discipline.ability}`}
+        </p>
+      ))}
+      {error ? (
+        <p className="message tone-error" aria-live="polite">{error}</p>
+      ) : null}
+      <form className="creation-command" onSubmit={choose}>
+        <label htmlFor="discipline-choice">DISCIPLINE &gt;</label>
+        <input
+          id="discipline-choice"
+          ref={inputRef}
+          value={choice}
+          onChange={(event) => setChoice(event.target.value)}
+          autoComplete="off"
+          autoCapitalize="none"
+          spellCheck={false}
+          disabled={working}
+          autoFocus
+        />
+      </form>
+      <p className="message tone-system">
+        {working ? "Binding your path..." : "Type a discipline and press ENTER."}
+      </p>
+    </TerminalFrame>
+  );
+}
+
 function AuthenticatedGame({
   accountName,
   authToken,
@@ -321,6 +418,18 @@ function AuthenticatedGame({
         accountName={accountName}
         authToken={authToken}
         onCreated={(character) =>
+          setCharacterState({ status: "ready", character })
+        }
+      />
+    );
+  }
+
+  if (!characterState.character.discipline) {
+    return (
+      <DisciplineSelection
+        character={characterState.character}
+        authToken={authToken}
+        onChosen={(character) =>
           setCharacterState({ status: "ready", character })
         }
       />
