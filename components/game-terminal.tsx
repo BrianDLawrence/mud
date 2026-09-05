@@ -47,6 +47,8 @@ export function GameTerminal({
   const roomCursorRef = useRef<string | null>(null);
   const pollingRef = useRef(false);
   const roomErrorShownRef = useRef(false);
+  const combatPollingRef = useRef(false);
+  const combatErrorShownRef = useRef(false);
 
   const roomHeaders = useCallback(
     () => (authToken ? { authorization: `Bearer ${authToken}` } : undefined),
@@ -231,6 +233,62 @@ export function GameTerminal({
     };
   }, [departRoom, roomHeaders]);
 
+  useEffect(() => {
+    if (!character.inCombat) {
+      combatErrorShownRef.current = false;
+      return;
+    }
+
+    let cancelled = false;
+    async function advanceFight() {
+      if (combatPollingRef.current || cancelled) return;
+      combatPollingRef.current = true;
+      try {
+        const response = await fetch("/api/game/combat", {
+          method: "POST",
+          headers: roomHeaders(),
+        });
+        const payload = (await response.json()) as {
+          messages?: GameMessage[];
+          character?: CharacterSummary;
+          error?: string;
+        };
+        if (!response.ok || !payload.messages || !payload.character) {
+          throw new Error(payload.error || "Combat advancement failed.");
+        }
+        if (cancelled) return;
+        if (payload.messages.length > 0) {
+          setMessages((current) => [...current, ...payload.messages!]);
+        }
+        setCharacter(payload.character);
+        combatErrorShownRef.current = false;
+      } catch (error) {
+        if (!cancelled && !combatErrorShownRef.current) {
+          combatErrorShownRef.current = true;
+          setMessages((current) => [
+            ...current,
+            {
+              tone: "error",
+              text:
+                error instanceof Error
+                  ? error.message
+                  : "Combat is temporarily unavailable.",
+            },
+          ]);
+        }
+      } finally {
+        combatPollingRef.current = false;
+      }
+    }
+
+    void advanceFight();
+    const interval = window.setInterval(() => void advanceFight(), 1_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+  }, [character.inCombat, roomHeaders]);
+
   useLayoutEffect(() => {
     const transcript = transcriptRef.current;
     if (transcript) {
@@ -284,6 +342,11 @@ export function GameTerminal({
         <span>HP {character.health}/{character.maxHealth}</span>
         {character.maxMana > 0 ? <span>MP {character.mana}/{character.maxMana}</span> : null}
         <span>XP {character.experience}</span>
+        {character.inCombat ? (
+          <span className="combat-state">
+            {character.attacking ? "ATTACKING" : "UNDER ATTACK"}
+          </span>
+        ) : null}
         <span className="connection-state">
           {busy ? "WORKING" : connectionLabel}
         </span>

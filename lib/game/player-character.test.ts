@@ -8,6 +8,7 @@ const character: StoredCharacter = {
   state: {
     roomId: "lantern-inn",
     discipline: "vanguard",
+    disciplineRevision: 2,
     attributes: { might: 5, agility: 2, intellect: 1, vitality: 5 },
     health: 20,
     maxHealth: 20,

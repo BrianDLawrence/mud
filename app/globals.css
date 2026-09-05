@@ -137,6 +137,10 @@ input {
   color: var(--green);
 }
 
+.combat-state {
+  color: var(--red);
+}
+
 .transcript {
   min-height: 0;
   overflow-y: auto;

@@ -26,7 +26,11 @@ const helpText = [
   "examine <thing>",
   "north/south/east/west/up/down",
   "attack <creature>",
+  "stop",
   "guard / aim / cast ember <creature>",
+  "smite <creature> / pray",
+  "sneak / backstab <creature>",
+  "resistance",
   "loot",
   "inventory",
   "equipment",
@@ -132,6 +136,7 @@ function move(state: CharacterState, requestedDirection: string): CommandResult 
     combat: undefined,
     guarding: undefined,
     aiming: undefined,
+    sneaking: fled ? undefined : state.sneaking,
   };
   return {
     state: nextState,
@@ -214,6 +219,7 @@ function defeatCreature(
     combat: undefined,
     guarding: undefined,
     aiming: undefined,
+    sneaking: undefined,
     defeatedCreatureIds: [...state.defeatedCreatureIds, creature.id],
     groundLoot:
       creature.loot.length > 0
@@ -243,42 +249,194 @@ function defeatCreature(
   };
 }
 
-function sufferRetaliation(
+const MAX_COMBAT_EVENTS_PER_ADVANCE = 12;
+
+export function attacksPerVolley(agility: number): number {
+  if (agility >= 7) return 3;
+  if (agility >= 4) return 2;
+  return 1;
+}
+
+export function playerAttackIntervalMs(agility: number): number {
+  return Math.max(1400, 3300 - agility * 250);
+}
+
+export function criticalChance(agility: number): number {
+  return Math.min(40, 5 + agility * 3);
+}
+
+export function magicHealingReceived(
+  state: CharacterState,
+  amount: number,
+): number {
+  const effectiveness = state.discipline
+    ? disciplines[state.discipline].healingEffectiveness
+    : 1;
+  return Math.max(0, Math.floor(amount * effectiveness));
+}
+
+function isCriticalHit(
+  state: CharacterState,
+  creatureHealth: number,
+  sequence: number,
+  offensiveStat = state.attributes.agility,
+): boolean {
+  const roll =
+    ((sequence * 41 +
+      offensiveStat * 13 +
+      creatureHealth * 7 +
+      state.experience * 3 +
+      state.level * 17) %
+      100) +
+    1;
+  return roll <= criticalChance(offensiveStat);
+}
+
+function startCombat(
   state: CharacterState,
   creature: Creature,
-  creatureHealth: number,
+  nowMs: number,
+): CharacterState {
+  const existing =
+    state.combat?.creatureId === creature.id &&
+    state.combat.roomId === state.roomId
+      ? state.combat
+      : undefined;
+
+  return {
+    ...state,
+    sneaking: undefined,
+    combat: {
+      creatureId: creature.id,
+      roomId: state.roomId,
+      health: existing?.health ?? creature.health,
+      playerAttacking: true,
+      nextPlayerAttackAt: nowMs,
+      nextCreatureAttackAt:
+        existing && existing.nextCreatureAttackAt > 0
+          ? existing.nextCreatureAttackAt
+          : nowMs + creature.attackIntervalMs,
+      sequence: existing?.sequence ?? 0,
+    },
+  };
+}
+
+function damageCreature(
+  state: CharacterState,
+  creature: Creature,
+  damage: number,
+  text: string,
 ): CommandResult {
+  if (!state.combat) return { state, messages: [] };
+
+  const remainingHealth = Math.max(0, state.combat.health - damage);
+  const nextState: CharacterState = {
+    ...state,
+    combat: { ...state.combat, health: remainingHealth },
+  };
+  const strike = message("combat", `${text} for ${damage} damage.`);
+  if (remainingHealth > 0) {
+    return { state: nextState, messages: [strike] };
+  }
+
+  const defeated = defeatCreature(nextState, creature);
+  return { state: defeated.state, messages: [strike, ...defeated.messages] };
+}
+
+function playerVolley(
+  state: CharacterState,
+  creature: Creature,
+  attackAt: number,
+): CommandResult {
+  if (!state.combat) return { state, messages: [] };
+
+  let workingState = state;
+  const messages: GameMessage[] = [];
+  const hits = attacksPerVolley(state.attributes.agility);
+  const aimedBonus = state.aiming ? 3 : 0;
+  const baseDamage =
+    3 +
+    Math.floor(state.attributes.might / 2) +
+    equipmentPower(state.equipment, "weapon") +
+    aimedBonus;
+
+  for (let hit = 1; hit <= hits && workingState.combat; hit += 1) {
+    const sequence = workingState.combat.sequence;
+    const critical = isCriticalHit(
+      workingState,
+      workingState.combat.health,
+      sequence,
+    );
+    workingState = {
+      ...workingState,
+      combat: { ...workingState.combat, sequence: sequence + 1 },
+    };
+    const result = damageCreature(
+      workingState,
+      creature,
+      baseDamage * (critical ? 2 : 1),
+      `${critical ? "CRITICAL! " : ""}${
+        hits > 1 ? `Hit ${hit}/${hits}: ` : ""
+      }You strike ${creature.name}`,
+    );
+    workingState = result.state;
+    messages.push(...result.messages);
+  }
+
+  if (workingState.combat) {
+    workingState = {
+      ...workingState,
+      aiming: undefined,
+      combat: {
+        ...workingState.combat,
+        nextPlayerAttackAt:
+          attackAt + playerAttackIntervalMs(workingState.attributes.agility),
+      },
+    };
+  }
+
+  return { state: workingState, messages };
+}
+
+function creatureAttack(
+  state: CharacterState,
+  creature: Creature,
+  attackAt: number,
+): CommandResult {
+  if (!state.combat) return { state, messages: [] };
+
+  const discipline = state.discipline ? disciplines[state.discipline] : undefined;
   const guardReduction = state.guarding ? 4 : 0;
+  const resistedDamage =
+    creature.damageType === "magic"
+      ? Math.ceil(creature.damage * (1 - (discipline?.magicResistance ?? 0)))
+      : creature.damage - equipmentArmor(state.equipment);
   const minimumDamage = creature.damage > 0 ? 1 : 0;
-  const damage = Math.max(
-    minimumDamage,
-    creature.damage - equipmentArmor(state.equipment) - guardReduction,
-  );
+  const damage = Math.max(minimumDamage, resistedDamage - guardReduction);
   const health = Math.max(0, state.health - damage);
   const combatState: CharacterState = {
     ...state,
     health,
     guarding: undefined,
     combat: {
-      creatureId: creature.id,
-      roomId: state.roomId,
-      health: creatureHealth,
+      ...state.combat,
+      nextCreatureAttackAt: attackAt + creature.attackIntervalMs,
     },
   };
-  const messages = [
-    message(
-      "combat",
-      state.guarding
-        ? `${creature.name} strikes your guard for ${damage} damage.`
-        : `${creature.name} strikes you for ${damage} damage.`,
-    ),
-  ];
+  const resistanceNote =
+    creature.damageType === "magic" && (discipline?.magicResistance ?? 0) > 0
+      ? ` Your wards resist ${Math.round(discipline!.magicResistance * 100)}%.`
+      : "";
+  const strike = message(
+    "combat",
+    `${creature.name} ${creature.damageType === "magic" ? "lashes you with magic" : "strikes you"} for ${damage} damage.${resistanceNote}`,
+  );
 
   if (health > 0) {
     return {
       state: combatState,
       messages: [
-        ...messages,
+        strike,
         message("status", `You have ${health}/${state.maxHealth} health.`),
       ],
     };
@@ -295,9 +453,10 @@ function sufferRetaliation(
       deathCount: state.deathCount + 1,
       combat: undefined,
       aiming: undefined,
+      sneaking: undefined,
     },
     messages: [
-      ...messages,
+      strike,
       message("combat", "Darkness closes over you."),
       message(
         "location",
@@ -311,33 +470,74 @@ function sufferRetaliation(
   };
 }
 
-function resolveAttack(
-  state: CharacterState,
-  creature: Creature,
-  damage: number,
-  attackDescription: string,
+export function advanceCombat(
+  currentState: CharacterState,
+  nowMs = Date.now(),
 ): CommandResult {
-  const currentHealth =
-    state.combat?.creatureId === creature.id
-      ? state.combat.health
-      : creature.health;
-  const remainingHealth = Math.max(0, currentHealth - damage);
-  const attackState = { ...state, aiming: undefined };
-  const strike = message(
-    "combat",
-    `${attackDescription} ${creature.name} for ${damage} damage.`,
-  );
-
-  if (remainingHealth === 0) {
-    const result = defeatCreature(attackState, creature);
-    return { state: result.state, messages: [strike, ...result.messages] };
+  let state = normalizeCharacterState(currentState);
+  if (!state.combat || state.combat.roomId !== state.roomId) {
+    return { state, messages: [] };
   }
 
-  const retaliation = sufferRetaliation(attackState, creature, remainingHealth);
-  return {
-    state: retaliation.state,
-    messages: [strike, ...retaliation.messages],
+  const creature = getRoom(state.roomId).creatures.find(
+    (candidate) => candidate.id === state.combat?.creatureId,
+  );
+  if (!creature || state.defeatedCreatureIds.includes(creature.id)) {
+    return { state: { ...state, combat: undefined }, messages: [] };
+  }
+
+  state = {
+    ...state,
+    combat: {
+      ...state.combat,
+      nextPlayerAttackAt:
+        state.combat.playerAttacking && state.combat.nextPlayerAttackAt <= 0
+          ? nowMs
+          : state.combat.nextPlayerAttackAt,
+      nextCreatureAttackAt:
+        state.combat.nextCreatureAttackAt <= 0
+          ? nowMs + creature.attackIntervalMs
+          : state.combat.nextCreatureAttackAt,
+    },
   };
+
+  const messages: GameMessage[] = [];
+  let events = 0;
+  while (state.combat && events < MAX_COMBAT_EVENTS_PER_ADVANCE) {
+    const playerAt = state.combat.playerAttacking
+      ? state.combat.nextPlayerAttackAt
+      : Number.POSITIVE_INFINITY;
+    const creatureAt = state.combat.nextCreatureAttackAt;
+    const nextEventAt = Math.min(playerAt, creatureAt);
+    if (nextEventAt > nowMs) break;
+
+    const result =
+      playerAt <= creatureAt
+        ? playerVolley(state, creature, playerAt)
+        : creatureAttack(state, creature, creatureAt);
+    state = result.state;
+    messages.push(...result.messages);
+    events += 1;
+  }
+
+  if (state.combat && events === MAX_COMBAT_EVENTS_PER_ADVANCE) {
+    state = {
+      ...state,
+      combat: {
+        ...state.combat,
+        nextPlayerAttackAt:
+          state.combat.playerAttacking && state.combat.nextPlayerAttackAt <= nowMs
+            ? nowMs + playerAttackIntervalMs(state.attributes.agility)
+            : state.combat.nextPlayerAttackAt,
+        nextCreatureAttackAt:
+          state.combat.nextCreatureAttackAt <= nowMs
+            ? nowMs + creature.attackIntervalMs
+            : state.combat.nextCreatureAttackAt,
+      },
+    };
+  }
+
+  return { state, messages };
 }
 
 function findVisibleCreature(
@@ -349,7 +549,11 @@ function findVisibleCreature(
   );
 }
 
-function attack(state: CharacterState, target: string): CommandResult {
+function attack(
+  state: CharacterState,
+  target: string,
+  nowMs: number,
+): CommandResult {
   const creature = findVisibleCreature(state, target);
   if (!creature) {
     return {
@@ -358,21 +562,77 @@ function attack(state: CharacterState, target: string): CommandResult {
     };
   }
 
-  const aimedBonus = state.aiming ? 4 : 0;
-  const damage =
-    3 +
-    Math.floor(state.attributes.might / 2) +
-    equipmentPower(state.equipment, "weapon") +
-    aimedBonus;
-  return resolveAttack(
-    state,
+  if (state.combat && state.combat.creatureId !== creature.id) {
+    return {
+      state,
+      messages: [message("error", "You are already engaged with another creature.")],
+    };
+  }
+  if (state.combat?.playerAttacking) {
+    return {
+      state,
+      messages: [message("status", `You are already attacking ${creature.name}.`)],
+    };
+  }
+
+  const resuming = Boolean(state.combat);
+  const engaged = startCombat(state, creature, nowMs);
+  const result = advanceCombat(engaged, nowMs);
+  return {
+    state: result.state,
+    messages: [
+      message(
+        "combat",
+        `${resuming ? "You resume attacking" : "You engage"} ${creature.name}. Type STOP to halt your attacks.`,
+      ),
+      ...result.messages,
+    ],
+  };
+}
+
+function specialAttack(
+  state: CharacterState,
+  creature: Creature,
+  nowMs: number,
+  baseDamage: number,
+  attackText: string,
+  offensiveStat: number,
+  forcedCritical = false,
+): CommandResult {
+  if (state.combat && state.combat.creatureId !== creature.id) {
+    return {
+      state,
+      messages: [message("error", "You are already engaged with another creature.")],
+    };
+  }
+
+  let engaged = startCombat(state, creature, nowMs);
+  const sequence = engaged.combat!.sequence;
+  const critical =
+    forcedCritical ||
+    isCriticalHit(engaged, engaged.combat!.health, sequence, offensiveStat);
+  engaged = {
+    ...engaged,
+    combat: {
+      ...engaged.combat!,
+      sequence: sequence + 1,
+      nextPlayerAttackAt:
+        nowMs + playerAttackIntervalMs(engaged.attributes.agility),
+    },
+  };
+  return damageCreature(
+    engaged,
     creature,
-    damage,
-    state.aiming ? "Your carefully aimed strike hits" : "You strike",
+    baseDamage * (critical ? 2 : 1),
+    `${critical ? "CRITICAL! " : ""}${attackText} ${creature.name}`,
   );
 }
 
-function cast(state: CharacterState, argument: string): CommandResult {
+function cast(
+  state: CharacterState,
+  argument: string,
+  nowMs: number,
+): CommandResult {
   const [spell = "", ...targetTokens] = argument.trim().split(/\s+/);
   const target = targetTokens.join(" ");
   if (spell.toLocaleLowerCase() !== "ember") {
@@ -402,22 +662,162 @@ function cast(state: CharacterState, argument: string): CommandResult {
     };
   }
 
-  const castingState = { ...state, mana: state.mana - 6 };
+  const castingState = { ...state, mana: state.mana - 6, aiming: undefined };
   const damage =
     5 +
     state.attributes.intellect +
     equipmentPower(state.equipment, "focus");
-  const result = resolveAttack(
+  const result = specialAttack(
     castingState,
     creature,
+    nowMs,
     damage,
     "Your ember burns",
+    state.attributes.intellect,
   );
   return {
     state: result.state,
     messages: [
       message("status", `You spend 6 mana. ${castingState.mana}/${state.maxMana} remain.`),
       ...result.messages,
+    ],
+  };
+}
+
+function smite(
+  state: CharacterState,
+  target: string,
+  nowMs: number,
+): CommandResult {
+  if (state.discipline !== "paladin") {
+    return {
+      state,
+      messages: [message("error", "Only a Paladin can call down a smite.")],
+    };
+  }
+  if (state.mana < 4) {
+    return { state, messages: [message("error", "You need 4 mana to Smite.")] };
+  }
+  const creature = findVisibleCreature(state, target);
+  if (!creature) {
+    return {
+      state,
+      messages: [message("error", `You see no "${target || "target"}" here.`)],
+    };
+  }
+
+  const castingState = { ...state, mana: state.mana - 4, aiming: undefined };
+  const result = specialAttack(
+    castingState,
+    creature,
+    nowMs,
+    5 + Math.floor(state.attributes.might / 2) + state.attributes.intellect,
+    "Your smite sears",
+    state.attributes.intellect,
+  );
+  return {
+    state: result.state,
+    messages: [
+      message("status", `You spend 4 mana. ${castingState.mana}/${state.maxMana} remain.`),
+      ...result.messages,
+    ],
+  };
+}
+
+function pray(state: CharacterState): CommandResult {
+  if (state.discipline !== "paladin") {
+    return {
+      state,
+      messages: [message("error", "Only a Paladin can use Prayer.")],
+    };
+  }
+  if (state.mana < 6) {
+    return { state, messages: [message("error", "You need 6 mana to Pray.")] };
+  }
+  if (state.health >= state.maxHealth) {
+    return { state, messages: [message("status", "You are already at full health.")] };
+  }
+
+  const healing = magicHealingReceived(state, 14);
+  const health = Math.min(state.maxHealth, state.health + healing);
+  return {
+    state: { ...state, health, mana: state.mana - 6 },
+    messages: [
+      message(
+        "status",
+        `A quiet light restores ${health - state.health} health. HP ${health}/${state.maxHealth} · MP ${state.mana - 6}/${state.maxMana}.`,
+      ),
+    ],
+  };
+}
+
+function backstab(
+  state: CharacterState,
+  target: string,
+  nowMs: number,
+): CommandResult {
+  if (state.discipline !== "rogue") {
+    return {
+      state,
+      messages: [message("error", "Only a Rogue can Backstab.")],
+    };
+  }
+  if (!state.sneaking) {
+    return {
+      state,
+      messages: [message("error", "You must SNEAK before attempting a Backstab.")],
+    };
+  }
+  const creature = findVisibleCreature(state, target);
+  if (!creature) {
+    return {
+      state,
+      messages: [message("error", `You see no "${target || "target"}" here.`)],
+    };
+  }
+
+  return specialAttack(
+    { ...state, sneaking: undefined },
+    creature,
+    nowMs,
+    5 +
+      Math.floor(state.attributes.might / 2) +
+      equipmentPower(state.equipment, "weapon"),
+    "You backstab",
+    state.attributes.agility,
+    true,
+  );
+}
+
+function stopAttacking(state: CharacterState): CommandResult {
+  if (!state.combat) {
+    return { state, messages: [message("status", "You are not in combat.")] };
+  }
+  if (!state.combat.playerAttacking) {
+    return {
+      state,
+      messages: [message("status", "You have already stopped attacking. Your enemy has not.")],
+    };
+  }
+
+  const creature = getRoom(state.roomId).creatures.find(
+    (candidate) => candidate.id === state.combat?.creatureId,
+  );
+  return {
+    state: {
+      ...state,
+      aiming: undefined,
+      combat: {
+        ...state.combat,
+        playerAttacking: false,
+        nextPlayerAttackAt: 0,
+      },
+    },
+    messages: [
+      message(
+        "combat",
+        `You stop attacking${creature ? ` ${creature.name}` : ""}, but it continues to attack you. Move away to escape.`,
+      ),
     ],
   };
 }
@@ -462,6 +862,21 @@ function equip(state: CharacterState, target: string): CommandResult {
         message("error", `${item.name} belongs to the ${disciplines[item.discipline].name}.`),
       ],
     };
+  }
+  if (item.armorWeight && state.discipline) {
+    const armorRanks = { light: 1, medium: 2, heavy: 3 } as const;
+    const training = disciplines[state.discipline].armorTraining;
+    if (armorRanks[item.armorWeight] > armorRanks[training]) {
+      return {
+        state,
+        messages: [
+          message(
+            "error",
+            `${disciplines[state.discipline].name} training only supports ${training} armor.`,
+          ),
+        ],
+      };
+    }
   }
 
   return {
@@ -631,13 +1046,23 @@ function equipmentMessages(state: CharacterState): GameMessage[] {
     .join(" · ");
   return [
     message("status", slots),
-    message("system", `Armor ${equipmentArmor(state.equipment)}.`),
+    message(
+      "system",
+      `Armor ${equipmentArmor(state.equipment)} · Training ${
+        state.discipline ? disciplines[state.discipline].armorTraining : "none"
+      }.`,
+    ),
   ];
+}
+
+interface ExecuteCommandOptions {
+  nowMs?: number;
 }
 
 export function executeCommand(
   currentState: CharacterState,
   rawCommand: string,
+  options: ExecuteCommandOptions = {},
 ): CommandResult {
   const state = normalizeCharacterState(currentState);
   const command = rawCommand.trim();
@@ -647,6 +1072,7 @@ export function executeCommand(
   const [verbToken = "", ...argumentTokens] = command.split(/\s+/);
   const verb = verbToken.toLocaleLowerCase();
   const argument = argumentTokens.join(" ");
+  const nowMs = options.nowMs ?? Date.now();
 
   if (!state.discipline && !["help", "?"].includes(verb)) {
     return {
@@ -712,9 +1138,47 @@ export function executeCommand(
     }
     case "attack":
     case "kill":
-      return attack(state, argument);
+      return attack(state, argument, nowMs);
+    case "stop":
+      return stopAttacking(state);
     case "cast":
-      return cast(state, argument);
+      return cast(state, argument, nowMs);
+    case "smite":
+      return smite(state, argument, nowMs);
+    case "pray":
+      return pray(state);
+    case "sneak":
+      return state.discipline === "rogue"
+        ? state.combat
+          ? {
+              state,
+              messages: [message("error", "You cannot disappear while already engaged.")],
+            }
+          : {
+              state: { ...state, sneaking: true },
+              messages: [message("status", "You melt into the edges of the room.")],
+            }
+        : {
+            state,
+            messages: [message("error", "Only a Rogue can Sneak.")],
+          };
+    case "backstab":
+      return backstab(state, argument, nowMs);
+    case "resistance": {
+      if (!state.discipline) {
+        return { state, messages: [message("error", "Choose a discipline first.")] };
+      }
+      const discipline = disciplines[state.discipline];
+      return {
+        state,
+        messages: [
+          message(
+            "status",
+            `Magic resistance ${Math.round(discipline.magicResistance * 100)}% · Magical healing received ${Math.round(discipline.healingEffectiveness * 100)}%.`,
+          ),
+        ],
+      };
+    }
     case "guard":
       return state.discipline === "vanguard"
         ? {
@@ -786,7 +1250,7 @@ export function executeCommand(
           ),
           message(
             "system",
-            `Might ${state.attributes.might} · Agility ${state.attributes.agility} · Intellect ${state.attributes.intellect} · Vitality ${state.attributes.vitality} · Deaths ${state.deathCount}`,
+            `Might ${state.attributes.might} · Agility ${state.attributes.agility} · Intellect ${state.attributes.intellect} · Vitality ${state.attributes.vitality} · ${attacksPerVolley(state.attributes.agility)} hit(s) every ${(playerAttackIntervalMs(state.attributes.agility) / 1000).toFixed(2)}s · Crit ${criticalChance(state.attributes.agility)}% · Deaths ${state.deathCount}`,
           ),
         ],
       };

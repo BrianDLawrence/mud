@@ -13,8 +13,18 @@ export const messageTones = [
 
 export type MessageTone = (typeof messageTones)[number];
 
-export const disciplineIds = ["vanguard", "wayfinder", "arcanist"] as const;
+export const disciplineIds = [
+  "vanguard",
+  "wayfinder",
+  "arcanist",
+  "paladin",
+  "witchhunter",
+  "rogue",
+] as const;
 export type DisciplineId = (typeof disciplineIds)[number];
+
+export const armorWeights = ["light", "medium", "heavy"] as const;
+export type ArmorWeight = (typeof armorWeights)[number];
 
 export interface CharacterAttributes {
   might: number;
@@ -50,11 +60,16 @@ export interface ActiveCombat {
   creatureId: string;
   roomId: string;
   health: number;
+  playerAttacking: boolean;
+  nextPlayerAttackAt: number;
+  nextCreatureAttackAt: number;
+  sequence: number;
 }
 
 export interface CharacterState {
   roomId: string;
   discipline?: DisciplineId;
+  disciplineRevision: number;
   attributes: CharacterAttributes;
   health: number;
   maxHealth: number;
@@ -70,6 +85,7 @@ export interface CharacterState {
   defeatedCreatureIds: string[];
   guarding?: boolean;
   aiming?: boolean;
+  sneaking?: boolean;
   combat?: ActiveCombat;
 }
 
@@ -92,12 +108,15 @@ export interface CharacterSummary {
   maxMana: number;
   experience: number;
   level: number;
+  inCombat: boolean;
+  attacking: boolean;
 }
 
 export interface CharacterProfile {
   id: string;
   name: string;
   discipline?: DisciplineId;
+  disciplineSelectionRequired: boolean;
   summary: CharacterSummary;
 }
 

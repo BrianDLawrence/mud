@@ -37,7 +37,9 @@ The command engine does not render HTML and does not depend on React, Vercel, Mo
 7. The client maps message tones to its chosen color theme.
 8. Room-aware actions append semantic events; clients poll forward from opaque cursors and never replay their own event as a duplicate.
 
-Discipline selection is a separate authenticated compare-and-set mutation. It grants a starter item and establishes authoritative attributes, HP, and optional mana before the command terminal opens.
+Discipline selection is a separate authenticated compare-and-set mutation. It grants starter equipment and establishes authoritative attributes, armor training, resistances, HP, and optional mana before the command terminal opens. A revision number supports an intentional one-time re-selection when the alpha roster changes without weakening the normal permanence rule.
+
+Active combat persists creature HP, attack intent, a deterministic roll sequence, and the next player/creature attack timestamps. The client polls an authenticated combat endpoint only while engagement exists. Each request derives due events and commits through optimistic concurrency; Vercel never needs a durable process or in-memory combat timer. `STOP` clears player attack intent but preserves the creature's schedule.
 
 The compare-and-set commit prevents two concurrent requests from overwriting each other. The route retries a conflicting command from the newest state a limited number of times.
 

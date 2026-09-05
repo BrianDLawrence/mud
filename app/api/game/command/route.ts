@@ -6,6 +6,7 @@ import { parseRoomCommand } from "@/lib/game/room-command";
 import { heartbeatRoom } from "@/lib/game/room-service";
 import { getRoomStore } from "@/lib/game/room-store";
 import { getGameStore } from "@/lib/game/store";
+import type { CharacterState } from "@/lib/game/types";
 import { getAuthenticatedPlayer } from "@/lib/player-identity";
 
 export const runtime = "nodejs";
@@ -15,15 +16,7 @@ const commandRequestSchema = z.object({
   command: z.string().trim().min(1).max(500),
 });
 
-function characterSummary(state: {
-  discipline?: "vanguard" | "wayfinder" | "arcanist";
-  health: number;
-  maxHealth: number;
-  mana: number;
-  maxMana: number;
-  experience: number;
-  level: number;
-}) {
+function characterSummary(state: CharacterState) {
   return {
     discipline: state.discipline,
     health: state.health,
@@ -32,6 +25,8 @@ function characterSummary(state: {
     maxMana: state.maxMana,
     experience: state.experience,
     level: state.level,
+    inCombat: Boolean(state.combat),
+    attacking: state.combat?.playerAttacking ?? false,
   };
 }
 

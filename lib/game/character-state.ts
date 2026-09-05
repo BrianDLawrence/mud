@@ -1,6 +1,7 @@
 import { legacyItemIds } from "@/lib/game/items";
 import { firstLightWorld } from "@/lib/game/world";
 import type {
+  ActiveCombat,
   CharacterAttributes,
   CharacterEquipment,
   CharacterState,
@@ -8,6 +9,7 @@ import type {
   LootDrop,
   QuestProgress,
 } from "@/lib/game/types";
+import { disciplineIds } from "@/lib/game/types";
 
 const noviceAttributes: CharacterAttributes = {
   might: 2,
@@ -19,6 +21,7 @@ const noviceAttributes: CharacterAttributes = {
 export function createInitialCharacterState(): CharacterState {
   return {
     roomId: firstLightWorld.entryRoomId,
+    disciplineRevision: 0,
     attributes: { ...noviceAttributes },
     health: 50,
     maxHealth: 50,
@@ -42,8 +45,9 @@ function finiteNonnegative(value: unknown, fallback: number): number {
 }
 
 function validDiscipline(value: unknown): DisciplineId | undefined {
-  return value === "vanguard" || value === "wayfinder" || value === "arcanist"
-    ? value
+  return typeof value === "string" &&
+    disciplineIds.includes(value as DisciplineId)
+    ? (value as DisciplineId)
     : undefined;
 }
 
@@ -56,6 +60,8 @@ export function normalizeCharacterState(input: CharacterState): CharacterState {
     deathCount?: number;
     mana?: number;
     maxMana?: number;
+    disciplineRevision?: number;
+    combat?: Partial<ActiveCombat>;
   };
   const fallback = createInitialCharacterState();
   const maxHealth = Math.max(1, finiteNonnegative(source.maxHealth, 50));
@@ -68,10 +74,31 @@ export function normalizeCharacterState(input: CharacterState): CharacterState {
     : inventory.includes("traveler-cloak")
       ? { armor: "traveler-cloak" }
       : {};
+  const discipline = validDiscipline(source.discipline);
+  const combat = source.combat
+    ? {
+        creatureId: source.combat.creatureId || "",
+        roomId: source.combat.roomId || source.roomId || fallback.roomId,
+        health: Math.max(1, finiteNonnegative(source.combat.health, 1)),
+        playerAttacking: source.combat.playerAttacking ?? true,
+        nextPlayerAttackAt: finiteNonnegative(
+          source.combat.nextPlayerAttackAt,
+          0,
+        ),
+        nextCreatureAttackAt: finiteNonnegative(
+          source.combat.nextCreatureAttackAt,
+          0,
+        ),
+        sequence: Math.floor(finiteNonnegative(source.combat.sequence, 0)),
+      }
+    : undefined;
 
   return {
     roomId: source.roomId || fallback.roomId,
-    discipline: validDiscipline(source.discipline),
+    discipline,
+    disciplineRevision: Math.floor(
+      finiteNonnegative(source.disciplineRevision, discipline ? 1 : 0),
+    ),
     attributes: {
       might: finiteNonnegative(source.attributes?.might, noviceAttributes.might),
       agility: finiteNonnegative(source.attributes?.agility, noviceAttributes.agility),
@@ -107,6 +134,7 @@ export function normalizeCharacterState(input: CharacterState): CharacterState {
       : [],
     guarding: source.guarding || undefined,
     aiming: source.aiming || undefined,
-    combat: source.combat ? { ...source.combat } : undefined,
+    sneaking: source.sneaking || undefined,
+    combat: combat?.creatureId ? combat : undefined,
   };
 }

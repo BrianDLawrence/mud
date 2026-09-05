@@ -5,7 +5,10 @@ import {
   normalizeCharacterName,
 } from "@/lib/game/character-name";
 import { getPlayerCharacter } from "@/lib/game/player-character";
-import { chooseDiscipline } from "@/lib/game/disciplines";
+import {
+  chooseDiscipline,
+  CURRENT_DISCIPLINE_REVISION,
+} from "@/lib/game/disciplines";
 import { getGameStore } from "@/lib/game/store";
 import {
   disciplineIds,
@@ -26,6 +29,9 @@ function toProfile(id: string, character: StoredCharacter): CharacterProfile {
     id,
     name: character.name,
     discipline: character.state.discipline,
+    disciplineSelectionRequired:
+      !character.state.discipline ||
+      character.state.disciplineRevision < CURRENT_DISCIPLINE_REVISION,
     summary: {
       discipline: character.state.discipline,
       health: character.state.health,
@@ -34,6 +40,8 @@ function toProfile(id: string, character: StoredCharacter): CharacterProfile {
       maxMana: character.state.maxMana,
       experience: character.state.experience,
       level: character.state.level,
+      inCombat: Boolean(character.state.combat),
+      attacking: character.state.combat?.playerAttacking ?? false,
     },
   };
 }
@@ -113,7 +121,10 @@ export async function PATCH(request: Request) {
   );
   if (!parsed.success) {
     return NextResponse.json(
-      { error: "Choose Vanguard, Wayfinder, or Arcanist." },
+      {
+        error:
+          "Choose Vanguard, Wayfinder, Arcanist, Paladin, Witch Hunter, or Rogue.",
+      },
       { status: 400 },
     );
   }
@@ -129,7 +140,11 @@ export async function PATCH(request: Request) {
     }
 
     const existingDiscipline = ownedCharacter.character.state.discipline;
-    if (existingDiscipline) {
+    if (
+      existingDiscipline &&
+      ownedCharacter.character.state.disciplineRevision >=
+        CURRENT_DISCIPLINE_REVISION
+    ) {
       if (existingDiscipline === parsed.data.discipline) {
         return NextResponse.json({
           character: toProfile(ownedCharacter.id, ownedCharacter.character),
