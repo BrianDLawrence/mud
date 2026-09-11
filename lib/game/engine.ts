@@ -1,3 +1,5 @@
+import { resolveCommand } from "@/lib/game/command-resolution";
+import { renderMap } from "@/lib/game/map";
 import { normalizeCharacterState } from "@/lib/game/character-state";
 import { disciplines } from "@/lib/game/disciplines";
 import {
@@ -48,7 +50,7 @@ const helpText = [
   "who",
   "signout",
   "help",
-].join(" · ");
+].join(" · ") + "\nShortcuts: A C / A M = attack marsh crawler; B BLADE 1 = buy trail blade 1; T K = talk keeper; X = examine; C E <target> = cast ember. Names accept unique word prefixes; ambiguous matches show choices. MAP draws your current area (@ = you).";
 
 function message(tone: GameMessage["tone"], text: string): GameMessage {
   return { tone, text };
@@ -60,10 +62,11 @@ function normalizeTarget(target: string): string {
 
 function matchesTarget(
   target: string,
-  candidate: { name: string; aliases: string[] },
+  candidate: { id?: string; name: string; aliases: string[] },
 ): boolean {
   const normalized = normalizeTarget(target);
   return (
+    candidate.id?.toLocaleLowerCase() === normalized ||
     candidate.name.toLocaleLowerCase() === normalized ||
     candidate.aliases.some((alias) => alias.toLocaleLowerCase() === normalized)
   );
@@ -1088,9 +1091,9 @@ export function executeCommand(
 
   if (!command) return { state, messages: [] };
 
-  const [verbToken = "", ...argumentTokens] = command.split(/\s+/);
-  const verb = verbToken.toLocaleLowerCase();
-  const argument = argumentTokens.join(" ");
+  const resolved = resolveCommand(state, command);
+  if ("error" in resolved) return { state, messages: [message("error", resolved.error)] };
+  const { verb, argument } = resolved;
   const nowMs = options.nowMs ?? Date.now();
 
   if (!state.discipline && !["help", "?"].includes(verb)) {
@@ -1127,7 +1130,7 @@ export function executeCommand(
       return { state, messages: [message("narrative", Object.keys(room.hiddenExits).length ? `Behind the weathered stone you discover a passage: ${Object.keys(room.hiddenExits).join(", ")}.` : "You search carefully. No concealed passages here."), ...describeRoom(state)] };
     }
     case "map":
-      return { state, messages: [message("exits", "LANTERNWICK -> Orchard 1-2 -> Briarwood 3-4 -> Quarry 5-6 -> Abbey 7-8 -> Crown 9-10\nSEARCH suspicious places. Discovered routes:\n" + state.discoveredRoomIds.map((id) => { const r = getRoom(id); return `${id === state.roomId ? "@" : "."} ${r.name}: ${Object.entries({ ...r.exits, ...(state.searchedRoomIds.includes(id) ? r.hiddenExits : {}) }).map(([d, to]) => `${d}=${state.discoveredRoomIds.includes(to) ? getRoom(to).name : "???"}`).join(" | ")}`; }).join("\n"))] };
+      return { state, messages: [message("map", renderMap(state))] };
     case "shop":
     case "buy":
     case "sell":
