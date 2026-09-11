@@ -1,14 +1,21 @@
 {
   "id": "first-light",
-  "version": 3,
+  "version": 4,
   "name": "The First Light",
   "entryRoomId": "lantern-inn",
-  "levelRange": { "min": 1, "max": 5 },
+  "levelRange": {
+    "min": 1,
+    "max": 10
+  },
   "quests": [
     {
       "id": "beneath-black-roots",
       "title": "Beneath Black Roots",
-      "aliases": ["orchard", "roots", "black roots"],
+      "aliases": [
+        "orchard",
+        "roots",
+        "black roots"
+      ],
       "giverNpcId": "keeper-vale",
       "summary": "Find the thing waking beneath the Drowned Orchard and end it.",
       "objective": {
@@ -17,24 +24,137 @@
       },
       "reward": {
         "experience": 80,
-        "itemIds": ["pale-heart-charm"]
+        "itemIds": [
+          "pale-heart-charm"
+        ]
       },
       "offeredDialogue": "The orchard has started breathing again. Follow the black water below its roots and silence what you find.",
       "activeDialogue": "The old roots drink from a cellar beneath the orchard. Whatever stirs there will not climb into my inn.",
       "readyDialogue": "The water has gone still. You found the buried thing, didn't you?",
       "completionDialogue": "Keep this charm. The pale heart remembers the hand that freed it."
+    },
+    {
+      "id": "orchard-lamp",
+      "title": "The Drowned Orchard Lamp",
+      "aliases": [
+        "orchard"
+      ],
+      "giverNpcId": "keeper-vale",
+      "summary": "Find and defeat The Graftmother in Drowned Orchard. Examine signs and SEARCH at the last landmark.",
+      "objective": {
+        "type": "defeat",
+        "creatureId": "orchard-guardian"
+      },
+      "reward": {
+        "experience": 200,
+        "itemIds": []
+      },
+      "offeredDialogue": "A lamp has gone dark in Drowned Orchard. Find The Graftmother; seek a concealed way beneath Forgotten Well.",
+      "activeDialogue": "The trail branches east. SEARCH Forgotten Well in Drowned Orchard.",
+      "readyDialogue": "The Drowned Orchard lamp burns again.",
+      "completionDialogue": "Another stretch of road remembers the light. Rest, resupply, and continue north."
+    },
+    {
+      "id": "briar-lamp",
+      "title": "The Briarwood Lamp",
+      "aliases": [
+        "briar"
+      ],
+      "giverNpcId": "keeper-vale",
+      "summary": "Find and defeat The Antler Widow in Briarwood. Examine signs and SEARCH at the last landmark.",
+      "objective": {
+        "type": "defeat",
+        "creatureId": "briar-guardian"
+      },
+      "reward": {
+        "experience": 400,
+        "itemIds": []
+      },
+      "offeredDialogue": "A lamp has gone dark in Briarwood. Find The Antler Widow; seek a concealed way beneath Wolfs Den.",
+      "activeDialogue": "The trail branches east. SEARCH Wolfs Den in Briarwood.",
+      "readyDialogue": "The Briarwood lamp burns again.",
+      "completionDialogue": "Another stretch of road remembers the light. Rest, resupply, and continue north."
+    },
+    {
+      "id": "quarry-lamp",
+      "title": "The Cinder Quarry Lamp",
+      "aliases": [
+        "quarry"
+      ],
+      "giverNpcId": "keeper-vale",
+      "summary": "Find and defeat The Kiln Warden in Cinder Quarry. Examine signs and SEARCH at the last landmark.",
+      "objective": {
+        "type": "defeat",
+        "creatureId": "quarry-guardian"
+      },
+      "reward": {
+        "experience": 600,
+        "itemIds": []
+      },
+      "offeredDialogue": "A lamp has gone dark in Cinder Quarry. Find The Kiln Warden; seek a concealed way beneath Sealed Lift.",
+      "activeDialogue": "The trail branches east. SEARCH Sealed Lift in Cinder Quarry.",
+      "readyDialogue": "The Cinder Quarry lamp burns again.",
+      "completionDialogue": "Another stretch of road remembers the light. Rest, resupply, and continue north."
+    },
+    {
+      "id": "abbey-lamp",
+      "title": "The Sunken Abbey Lamp",
+      "aliases": [
+        "abbey"
+      ],
+      "giverNpcId": "keeper-vale",
+      "summary": "Find and defeat The Bellless Prior in Sunken Abbey. Examine signs and SEARCH at the last landmark.",
+      "objective": {
+        "type": "defeat",
+        "creatureId": "abbey-guardian"
+      },
+      "reward": {
+        "experience": 800,
+        "itemIds": []
+      },
+      "offeredDialogue": "A lamp has gone dark in Sunken Abbey. Find The Bellless Prior; seek a concealed way beneath Blind Chapel.",
+      "activeDialogue": "The trail branches east. SEARCH Blind Chapel in Sunken Abbey.",
+      "readyDialogue": "The Sunken Abbey lamp burns again.",
+      "completionDialogue": "Another stretch of road remembers the light. Rest, resupply, and continue north."
+    },
+    {
+      "id": "crown-lamp",
+      "title": "The Hollow Crown Lamp",
+      "aliases": [
+        "crown"
+      ],
+      "giverNpcId": "keeper-vale",
+      "summary": "Find and defeat The Hollow Regent in Hollow Crown. Examine signs and SEARCH at the last landmark.",
+      "objective": {
+        "type": "defeat",
+        "creatureId": "crown-guardian"
+      },
+      "reward": {
+        "experience": 1000,
+        "itemIds": []
+      },
+      "offeredDialogue": "A lamp has gone dark in Hollow Crown. Find The Hollow Regent; seek a concealed way beneath Last Stair.",
+      "activeDialogue": "The trail branches east. SEARCH Last Stair in Hollow Crown.",
+      "readyDialogue": "The Hollow Crown lamp burns again.",
+      "completionDialogue": "Another stretch of road remembers the light. Rest, resupply, and continue north."
     }
   ],
   "rooms": [
     {
       "id": "lantern-inn",
       "name": "The Copper Lantern",
-      "description": "Firelight warms a low room of dark oak and river stone. Travelers speak quietly beneath a copper lantern that never seems to dim.",
-      "exits": { "north": "rusted-gate", "east": "market-lane" },
+      "description": "Firelight warms a low room of dark oak and river stone. Travelers speak quietly beneath a copper lantern that never seems to dim. This is Lanternwick, the last warm town on the old pilgrimage road. Type MAP for your journal and TALK KEEPER for work.",
+      "exits": {
+        "north": "rusted-gate",
+        "east": "market-lane"
+      },
       "features": [
         {
           "name": "copper lantern",
-          "aliases": ["lantern", "light"],
+          "aliases": [
+            "lantern",
+            "light"
+          ],
           "description": "Its flame bends toward the north, though no draft touches the room."
         }
       ],
@@ -43,10 +163,21 @@
         {
           "id": "keeper-vale",
           "name": "Keeper Vale",
-          "aliases": ["keeper", "vale", "innkeeper"],
+          "aliases": [
+            "keeper",
+            "vale",
+            "innkeeper"
+          ],
           "description": "A silver-haired innkeeper watches the northern door with one hand resting on a ring of iron keys.",
-          "dialogue": "Keeper Vale says, “Warm yourself while you can. The marsh has a long memory tonight.”",
-          "questIds": ["beneath-black-roots"]
+          "dialogue": "Keeper Vale says, \u201cWarm yourself while you can. The marsh has a long memory tonight.\u201d",
+          "questIds": [
+            "beneath-black-roots",
+            "orchard-lamp",
+            "briar-lamp",
+            "quarry-lamp",
+            "abbey-lamp",
+            "crown-lamp"
+          ]
         }
       ]
     },
@@ -54,11 +185,18 @@
       "id": "rusted-gate",
       "name": "The Rusted Gate",
       "description": "Rain runs down the remains of an iron portcullis. A narrow road continues north into the marsh. Fresh tracks lead east.",
-      "exits": { "north": "drowned-orchard", "south": "lantern-inn" },
+      "exits": {
+        "north": "drowned-orchard",
+        "south": "lantern-inn",
+        "east": "town-square"
+      },
       "features": [
         {
           "name": "fresh tracks",
-          "aliases": ["tracks", "footprints"],
+          "aliases": [
+            "tracks",
+            "footprints"
+          ],
           "description": "The tracks belong to something heavy and three-legged. They are less than an hour old."
         }
       ],
@@ -68,27 +206,57 @@
     {
       "id": "market-lane",
       "name": "Market Lane",
-      "description": "Canvas awnings snap above shuttered stalls. Chalk marks on the cobbles count debts nobody admits to owing.",
-      "exits": { "west": "lantern-inn" },
+      "description": "Lanternwick's market rings with the hammer of smith Orla. Weapons, foci and light armor hang beneath copper awnings. SHOP lists prices; BUY and SELL trade for gold.",
+      "exits": {
+        "west": "lantern-inn",
+        "east": "apothecary"
+      },
       "features": [
         {
           "name": "chalk marks",
-          "aliases": ["marks", "chalk"],
+          "aliases": [
+            "marks",
+            "chalk"
+          ],
           "description": "Seven names repeat in a careful hand. The eighth has been scrubbed away."
         }
       ],
       "creatures": [],
-      "npcs": []
+      "npcs": [],
+      "shop": [
+        "trail-blade-1",
+        "trail-focus-1",
+        "trail-armor-1",
+        "trail-blade-2",
+        "trail-focus-2",
+        "trail-armor-2",
+        "trail-blade-3",
+        "trail-focus-3",
+        "trail-armor-3",
+        "trail-blade-4",
+        "trail-focus-4",
+        "trail-armor-4",
+        "trail-blade-5",
+        "trail-focus-5",
+        "trail-armor-5"
+      ]
     },
     {
       "id": "drowned-orchard",
       "name": "The Drowned Orchard",
       "description": "Rows of dead apple trees rise from black water. Pale fruit hangs from one branch, untouched by rot.",
-      "exits": { "south": "rusted-gate", "down": "root-cellar" },
+      "exits": {
+        "south": "rusted-gate",
+        "down": "root-cellar",
+        "north": "orchard-0"
+      },
       "features": [
         {
           "name": "pale fruit",
-          "aliases": ["fruit", "apple"],
+          "aliases": [
+            "fruit",
+            "apple"
+          ],
           "description": "The skin is cold and flawless. Something shifts inside when you touch it."
         }
       ],
@@ -96,14 +264,19 @@
         {
           "id": "marsh-crawler",
           "name": "marsh crawler",
-          "aliases": ["crawler", "creature"],
+          "aliases": [
+            "crawler",
+            "creature"
+          ],
           "description": "A mud-armored thing balanced on three hooked limbs.",
           "health": 12,
           "damage": 3,
           "damageType": "physical",
           "attackIntervalMs": 2600,
           "experience": 30,
-          "loot": ["crawler-chitin"]
+          "loot": [
+            "crawler-chitin"
+          ]
         }
       ],
       "npcs": []
@@ -112,11 +285,17 @@
       "id": "root-cellar",
       "name": "The Root Cellar",
       "description": "Black roots knot through a flooded stone vault. At its center, a wooden figure rises and falls as though the whole orchard breathes through it.",
-      "exits": { "up": "drowned-orchard" },
+      "exits": {
+        "up": "drowned-orchard"
+      },
       "features": [
         {
           "name": "buried heart",
-          "aliases": ["heart", "roots", "black roots"],
+          "aliases": [
+            "heart",
+            "roots",
+            "black roots"
+          ],
           "description": "A pulse travels through the largest root. Each beat sends a ring across the dark water."
         }
       ],
@@ -124,7 +303,11 @@
         {
           "id": "rootbound-keeper",
           "name": "rootbound keeper",
-          "aliases": ["keeper", "rootbound", "guardian"],
+          "aliases": [
+            "keeper",
+            "rootbound",
+            "guardian"
+          ],
           "description": "A tall shape of drowned wood and rusted orchard tools, moving to the rhythm beneath the roots.",
           "health": 28,
           "damage": 6,
@@ -135,6 +318,2157 @@
         }
       ],
       "npcs": []
+    },
+    {
+      "id": "apothecary",
+      "name": "The Green Bottle",
+      "description": "Dried mint and bitter smoke fill Nessa's shop. Draughts help between fights; REST is always free. SHOP to browse.",
+      "exits": {
+        "west": "market-lane",
+        "north": "town-square"
+      },
+      "shop": [
+        "healing-draught",
+        "mana-draught"
+      ]
+    },
+    {
+      "id": "town-square",
+      "name": "Lanternwick Bell Square",
+      "description": "Five unlit lamps stand around a road marker: orchard, briar, cinder, abbey, crown. The keeper collects reports from all five lands. Search the wilderness for their hidden guardians.",
+      "exits": {
+        "south": "apothecary",
+        "west": "rusted-gate"
+      }
+    },
+    {
+      "id": "orchard-0",
+      "name": "Reed Causeway",
+      "area": "Drowned Orchard",
+      "recommendedLevel": 1,
+      "description": "Drowned Orchard [recommended level 1-2]. A trail of small bones ends at the waterline.",
+      "exits": {
+        "south": "drowned-orchard",
+        "north": "orchard-1",
+        "east": "orchard-6"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "The bones have been arranged into an arrow pointing north."
+        }
+      ],
+      "creatures": [
+        {
+          "id": "orchard-creature-0",
+          "name": "reed rat",
+          "aliases": [
+            "creature"
+          ],
+          "description": "A reed rat patrols reed causeway. Its attention follows every footstep.",
+          "health": 30,
+          "damage": 5,
+          "experience": 25,
+          "gold": 8,
+          "respawnMs": 180000,
+          "loot": [
+            "healing-draught"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "orchard-1",
+      "name": "Sunken Press",
+      "area": "Drowned Orchard",
+      "recommendedLevel": 1,
+      "description": "Drowned Orchard [recommended level 1-2]. Someone has left a warm cup on a ruined wall.",
+      "exits": {
+        "south": "orchard-0",
+        "north": "orchard-2",
+        "east": "orchard-7"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "The cup bears the same copper mark as the lantern in town."
+        }
+      ],
+      "creatures": [
+        {
+          "id": "orchard-creature-1",
+          "name": "thorn beetle",
+          "aliases": [
+            "creature"
+          ],
+          "description": "A thorn beetle patrols sunken press. Its attention follows every footstep.",
+          "health": 33,
+          "damage": 5,
+          "experience": 25,
+          "gold": 8,
+          "respawnMs": 180000,
+          "loot": []
+        }
+      ]
+    },
+    {
+      "id": "orchard-2",
+      "name": "Washerwoman Pool",
+      "area": "Drowned Orchard",
+      "recommendedLevel": 1,
+      "description": "Drowned Orchard [recommended level 1-2]. A torn journal flutters against a branch.",
+      "exits": {
+        "south": "orchard-1",
+        "north": "orchard-3",
+        "east": "orchard-8"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "\"We counted five guardians. Each kept one lamp dark.\""
+        }
+      ],
+      "creatures": [
+        {
+          "id": "orchard-creature-2",
+          "name": "bog adder",
+          "aliases": [
+            "creature"
+          ],
+          "description": "A bog adder patrols washerwoman pool. Its attention follows every footstep.",
+          "health": 36,
+          "damage": 5,
+          "experience": 25,
+          "gold": 8,
+          "respawnMs": 180000,
+          "loot": []
+        }
+      ]
+    },
+    {
+      "id": "orchard-3",
+      "name": "Crooked Bough",
+      "area": "Drowned Orchard",
+      "recommendedLevel": 1,
+      "description": "Drowned Orchard [recommended level 1-2]. Fresh gouges scar the stone.",
+      "exits": {
+        "south": "orchard-2",
+        "north": "orchard-4",
+        "east": "orchard-9"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "The marks are too regular for claws: someone dragged a locked chest here."
+        }
+      ],
+      "creatures": [
+        {
+          "id": "orchard-creature-3",
+          "name": "silt hound",
+          "aliases": [
+            "creature"
+          ],
+          "description": "A silt hound patrols crooked bough. Its attention follows every footstep.",
+          "health": 39,
+          "damage": 5,
+          "experience": 25,
+          "gold": 8,
+          "respawnMs": 180000,
+          "loot": [
+            "healing-draught"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "orchard-4",
+      "name": "Apple Shrine",
+      "area": "Drowned Orchard",
+      "recommendedLevel": 1,
+      "description": "Drowned Orchard [recommended level 1-2]. A faded waystone leans toward the trail.",
+      "exits": {
+        "south": "orchard-3",
+        "north": "orchard-5"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "A pilgrim carved: \"Beyond the last landmark, SEARCH. The old ways lie beneath.\""
+        }
+      ]
+    },
+    {
+      "id": "orchard-5",
+      "name": "Silt Walk",
+      "area": "Drowned Orchard",
+      "recommendedLevel": 1,
+      "description": "Drowned Orchard [recommended level 1-2]. An abandoned camp smells faintly of cloves.",
+      "exits": {
+        "south": "orchard-4",
+        "north": "briar-0"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "The bedroll is empty. A note says: \"Return to Vale after the guardian falls.\""
+        }
+      ],
+      "creatures": [
+        {
+          "id": "orchard-creature-5",
+          "name": "thorn beetle",
+          "aliases": [
+            "creature"
+          ],
+          "description": "A thorn beetle patrols silt walk. Its attention follows every footstep.",
+          "health": 45,
+          "damage": 5,
+          "experience": 25,
+          "gold": 8,
+          "respawnMs": 180000,
+          "loot": []
+        }
+      ]
+    },
+    {
+      "id": "orchard-6",
+      "name": "Flooded Granary",
+      "area": "Drowned Orchard",
+      "recommendedLevel": 1,
+      "description": "Drowned Orchard [recommended level 1-2]. A cracked bell lies half buried nearby.",
+      "exits": {
+        "west": "orchard-0"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "It makes no sound, but touching it sends a shiver northward."
+        }
+      ],
+      "creatures": [
+        {
+          "id": "orchard-creature-6",
+          "name": "bog adder",
+          "aliases": [
+            "creature"
+          ],
+          "description": "A bog adder patrols flooded granary. Its attention follows every footstep.",
+          "health": 48,
+          "damage": 5,
+          "experience": 25,
+          "gold": 8,
+          "respawnMs": 180000,
+          "loot": [
+            "healing-draught"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "orchard-7",
+      "name": "Widow Bank",
+      "area": "Drowned Orchard",
+      "recommendedLevel": 1,
+      "description": "Drowned Orchard [recommended level 1-2]. Footprints circle an untouched patch of moss.",
+      "exits": {
+        "west": "orchard-1"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "Every print points away from the center. Something slept here recently."
+        }
+      ],
+      "creatures": [
+        {
+          "id": "orchard-creature-7",
+          "name": "silt hound",
+          "aliases": [
+            "creature"
+          ],
+          "description": "A silt hound patrols widow bank. Its attention follows every footstep.",
+          "health": 51,
+          "damage": 5,
+          "experience": 25,
+          "gold": 8,
+          "respawnMs": 180000,
+          "loot": []
+        }
+      ]
+    },
+    {
+      "id": "orchard-8",
+      "name": "Old Sluice",
+      "area": "Drowned Orchard",
+      "recommendedLevel": 1,
+      "description": "Drowned Orchard [recommended level 1-2]. Old cloth ribbons mark a safe crossing.",
+      "exits": {
+        "west": "orchard-2"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "One ribbon is embroidered with the word Lanternwick."
+        }
+      ],
+      "creatures": [
+        {
+          "id": "orchard-creature-8",
+          "name": "reed rat",
+          "aliases": [
+            "creature"
+          ],
+          "description": "A reed rat patrols old sluice. Its attention follows every footstep.",
+          "health": 54,
+          "damage": 5,
+          "experience": 25,
+          "gold": 8,
+          "respawnMs": 180000,
+          "loot": []
+        }
+      ]
+    },
+    {
+      "id": "orchard-9",
+      "name": "Forgotten Well",
+      "area": "Drowned Orchard",
+      "recommendedLevel": 1,
+      "description": "Drowned Orchard [recommended level 1-2]. Weathered stone conceals a seam in the earth.",
+      "exits": {
+        "west": "orchard-3"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "A cold draft rises from below. SEARCH may uncover a passage."
+        }
+      ],
+      "hiddenExits": {
+        "down": "orchard-boss"
+      },
+      "creatures": [
+        {
+          "id": "orchard-creature-9",
+          "name": "thorn beetle",
+          "aliases": [
+            "creature"
+          ],
+          "description": "A thorn beetle patrols forgotten well. Its attention follows every footstep.",
+          "health": 57,
+          "damage": 5,
+          "experience": 25,
+          "gold": 8,
+          "respawnMs": 180000,
+          "loot": [
+            "healing-draught"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "orchard-boss",
+      "name": "The Graftmother's Refuge",
+      "area": "Drowned Orchard",
+      "recommendedLevel": 2,
+      "description": "Here the road ends in a chamber untouched by daylight. The Graftmother stands over a cold copper lamp.",
+      "exits": {
+        "up": "orchard-9"
+      },
+      "creatures": [
+        {
+          "id": "orchard-guardian",
+          "name": "the graftmother",
+          "aliases": [
+            "guardian",
+            "boss"
+          ],
+          "description": "The hidden guardian of Drowned Orchard. Defeat it and report to Keeper Vale.",
+          "health": 64,
+          "damage": 5,
+          "experience": 120,
+          "gold": 35,
+          "respawnMs": 600000,
+          "loot": [
+            "trail-blade-1",
+            "trail-focus-1",
+            "trail-armor-1"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "briar-0",
+      "name": "Thorn Threshold",
+      "area": "Briarwood",
+      "recommendedLevel": 3,
+      "description": "Briarwood [recommended level 3-4]. A trail of small bones ends at the waterline.",
+      "exits": {
+        "south": "orchard-5",
+        "north": "briar-1",
+        "east": "briar-6"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "The bones have been arranged into an arrow pointing north."
+        }
+      ],
+      "creatures": [
+        {
+          "id": "briar-creature-0",
+          "name": "briar wolf",
+          "aliases": [
+            "creature"
+          ],
+          "description": "A briar wolf patrols thorn threshold. Its attention follows every footstep.",
+          "health": 66,
+          "damage": 8,
+          "experience": 55,
+          "gold": 16,
+          "respawnMs": 180000,
+          "loot": [
+            "healing-draught"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "briar-1",
+      "name": "Fox Run",
+      "area": "Briarwood",
+      "recommendedLevel": 3,
+      "description": "Briarwood [recommended level 3-4]. Someone has left a warm cup on a ruined wall.",
+      "exits": {
+        "south": "briar-0",
+        "north": "briar-2",
+        "east": "briar-7"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "The cup bears the same copper mark as the lantern in town."
+        }
+      ],
+      "creatures": [
+        {
+          "id": "briar-creature-1",
+          "name": "web spinner",
+          "aliases": [
+            "creature"
+          ],
+          "description": "A web spinner patrols fox run. Its attention follows every footstep.",
+          "health": 69,
+          "damage": 8,
+          "experience": 55,
+          "gold": 16,
+          "respawnMs": 180000,
+          "loot": []
+        }
+      ]
+    },
+    {
+      "id": "briar-2",
+      "name": "Split Oak",
+      "area": "Briarwood",
+      "recommendedLevel": 3,
+      "description": "Briarwood [recommended level 3-4]. A torn journal flutters against a branch.",
+      "exits": {
+        "south": "briar-1",
+        "north": "briar-3",
+        "east": "briar-8"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "\"We counted five guardians. Each kept one lamp dark.\""
+        }
+      ],
+      "creatures": [
+        {
+          "id": "briar-creature-2",
+          "name": "thorn brigand",
+          "aliases": [
+            "creature"
+          ],
+          "description": "A thorn brigand patrols split oak. Its attention follows every footstep.",
+          "health": 72,
+          "damage": 8,
+          "experience": 55,
+          "gold": 16,
+          "respawnMs": 180000,
+          "loot": []
+        }
+      ]
+    },
+    {
+      "id": "briar-3",
+      "name": "Charcoal Camp",
+      "area": "Briarwood",
+      "recommendedLevel": 3,
+      "description": "Briarwood [recommended level 3-4]. Fresh gouges scar the stone.",
+      "exits": {
+        "south": "briar-2",
+        "north": "briar-4",
+        "east": "briar-9"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "The marks are too regular for claws: someone dragged a locked chest here."
+        }
+      ],
+      "creatures": [
+        {
+          "id": "briar-creature-3",
+          "name": "bark sentinel",
+          "aliases": [
+            "creature"
+          ],
+          "description": "A bark sentinel patrols charcoal camp. Its attention follows every footstep.",
+          "health": 75,
+          "damage": 8,
+          "experience": 55,
+          "gold": 16,
+          "respawnMs": 180000,
+          "loot": [
+            "healing-draught"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "briar-4",
+      "name": "Briar Bridge",
+      "area": "Briarwood",
+      "recommendedLevel": 3,
+      "description": "Briarwood [recommended level 3-4]. A faded waystone leans toward the trail.",
+      "exits": {
+        "south": "briar-3",
+        "north": "briar-5"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "A pilgrim carved: \"Beyond the last landmark, SEARCH. The old ways lie beneath.\""
+        }
+      ]
+    },
+    {
+      "id": "briar-5",
+      "name": "Hunters Blind",
+      "area": "Briarwood",
+      "recommendedLevel": 3,
+      "description": "Briarwood [recommended level 3-4]. An abandoned camp smells faintly of cloves.",
+      "exits": {
+        "south": "briar-4",
+        "north": "quarry-0"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "The bedroll is empty. A note says: \"Return to Vale after the guardian falls.\""
+        }
+      ],
+      "creatures": [
+        {
+          "id": "briar-creature-5",
+          "name": "web spinner",
+          "aliases": [
+            "creature"
+          ],
+          "description": "A web spinner patrols hunters blind. Its attention follows every footstep.",
+          "health": 81,
+          "damage": 8,
+          "experience": 55,
+          "gold": 16,
+          "respawnMs": 180000,
+          "loot": []
+        }
+      ]
+    },
+    {
+      "id": "briar-6",
+      "name": "Spider Hollow",
+      "area": "Briarwood",
+      "recommendedLevel": 3,
+      "description": "Briarwood [recommended level 3-4]. A cracked bell lies half buried nearby.",
+      "exits": {
+        "west": "briar-0"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "It makes no sound, but touching it sends a shiver northward."
+        }
+      ],
+      "creatures": [
+        {
+          "id": "briar-creature-6",
+          "name": "thorn brigand",
+          "aliases": [
+            "creature"
+          ],
+          "description": "A thorn brigand patrols spider hollow. Its attention follows every footstep.",
+          "health": 84,
+          "damage": 8,
+          "experience": 55,
+          "gold": 16,
+          "respawnMs": 180000,
+          "loot": [
+            "healing-draught"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "briar-7",
+      "name": "Moon Pool",
+      "area": "Briarwood",
+      "recommendedLevel": 3,
+      "description": "Briarwood [recommended level 3-4]. Footprints circle an untouched patch of moss.",
+      "exits": {
+        "west": "briar-1"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "Every print points away from the center. Something slept here recently."
+        }
+      ],
+      "creatures": [
+        {
+          "id": "briar-creature-7",
+          "name": "bark sentinel",
+          "aliases": [
+            "creature"
+          ],
+          "description": "A bark sentinel patrols moon pool. Its attention follows every footstep.",
+          "health": 87,
+          "damage": 8,
+          "experience": 55,
+          "gold": 16,
+          "respawnMs": 180000,
+          "loot": []
+        }
+      ]
+    },
+    {
+      "id": "briar-8",
+      "name": "Boundary Stones",
+      "area": "Briarwood",
+      "recommendedLevel": 3,
+      "description": "Briarwood [recommended level 3-4]. Old cloth ribbons mark a safe crossing.",
+      "exits": {
+        "west": "briar-2"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "One ribbon is embroidered with the word Lanternwick."
+        }
+      ],
+      "creatures": [
+        {
+          "id": "briar-creature-8",
+          "name": "briar wolf",
+          "aliases": [
+            "creature"
+          ],
+          "description": "A briar wolf patrols boundary stones. Its attention follows every footstep.",
+          "health": 90,
+          "damage": 8,
+          "experience": 55,
+          "gold": 16,
+          "respawnMs": 180000,
+          "loot": []
+        }
+      ]
+    },
+    {
+      "id": "briar-9",
+      "name": "Wolfs Den",
+      "area": "Briarwood",
+      "recommendedLevel": 3,
+      "description": "Briarwood [recommended level 3-4]. Weathered stone conceals a seam in the earth.",
+      "exits": {
+        "west": "briar-3"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "A cold draft rises from below. SEARCH may uncover a passage."
+        }
+      ],
+      "hiddenExits": {
+        "down": "briar-boss"
+      },
+      "creatures": [
+        {
+          "id": "briar-creature-9",
+          "name": "web spinner",
+          "aliases": [
+            "creature"
+          ],
+          "description": "A web spinner patrols wolfs den. Its attention follows every footstep.",
+          "health": 93,
+          "damage": 8,
+          "experience": 55,
+          "gold": 16,
+          "respawnMs": 180000,
+          "loot": [
+            "healing-draught"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "briar-boss",
+      "name": "The Antler Widow's Refuge",
+      "area": "Briarwood",
+      "recommendedLevel": 4,
+      "description": "Here the road ends in a chamber untouched by daylight. The Antler Widow stands over a cold copper lamp.",
+      "exits": {
+        "up": "briar-9"
+      },
+      "creatures": [
+        {
+          "id": "briar-guardian",
+          "name": "the antler widow",
+          "aliases": [
+            "guardian",
+            "boss"
+          ],
+          "description": "The hidden guardian of Briarwood. Defeat it and report to Keeper Vale.",
+          "health": 136,
+          "damage": 7,
+          "experience": 240,
+          "gold": 70,
+          "respawnMs": 600000,
+          "loot": [
+            "trail-blade-2",
+            "trail-focus-2",
+            "trail-armor-2"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "quarry-0",
+      "name": "Ash Road",
+      "area": "Cinder Quarry",
+      "recommendedLevel": 5,
+      "description": "Cinder Quarry [recommended level 5-6]. A trail of small bones ends at the waterline.",
+      "exits": {
+        "south": "briar-5",
+        "north": "quarry-1",
+        "east": "quarry-6"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "The bones have been arranged into an arrow pointing north."
+        }
+      ],
+      "creatures": [
+        {
+          "id": "quarry-creature-0",
+          "name": "cinder scavenger",
+          "aliases": [
+            "creature"
+          ],
+          "description": "A cinder scavenger patrols ash road. Its attention follows every footstep.",
+          "health": 126,
+          "damage": 11,
+          "experience": 100,
+          "gold": 24,
+          "respawnMs": 180000,
+          "loot": [
+            "healing-draught"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "quarry-1",
+      "name": "Weigh House",
+      "area": "Cinder Quarry",
+      "recommendedLevel": 5,
+      "description": "Cinder Quarry [recommended level 5-6]. Someone has left a warm cup on a ruined wall.",
+      "exits": {
+        "south": "quarry-0",
+        "north": "quarry-2",
+        "east": "quarry-7"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "The cup bears the same copper mark as the lantern in town."
+        }
+      ],
+      "creatures": [
+        {
+          "id": "quarry-creature-1",
+          "name": "slag beetle",
+          "aliases": [
+            "creature"
+          ],
+          "description": "A slag beetle patrols weigh house. Its attention follows every footstep.",
+          "health": 129,
+          "damage": 11,
+          "experience": 100,
+          "gold": 24,
+          "respawnMs": 180000,
+          "loot": []
+        }
+      ]
+    },
+    {
+      "id": "quarry-2",
+      "name": "Broken Winch",
+      "area": "Cinder Quarry",
+      "recommendedLevel": 5,
+      "description": "Cinder Quarry [recommended level 5-6]. A torn journal flutters against a branch.",
+      "exits": {
+        "south": "quarry-1",
+        "north": "quarry-3",
+        "east": "quarry-8"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "\"We counted five guardians. Each kept one lamp dark.\""
+        }
+      ],
+      "creatures": [
+        {
+          "id": "quarry-creature-2",
+          "name": "ash revenant",
+          "aliases": [
+            "creature"
+          ],
+          "description": "A ash revenant patrols broken winch. Its attention follows every footstep.",
+          "health": 132,
+          "damage": 11,
+          "experience": 100,
+          "gold": 24,
+          "respawnMs": 180000,
+          "loot": []
+        }
+      ]
+    },
+    {
+      "id": "quarry-3",
+      "name": "Ore Shelf",
+      "area": "Cinder Quarry",
+      "recommendedLevel": 5,
+      "description": "Cinder Quarry [recommended level 5-6]. Fresh gouges scar the stone.",
+      "exits": {
+        "south": "quarry-2",
+        "north": "quarry-4",
+        "east": "quarry-9"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "The marks are too regular for claws: someone dragged a locked chest here."
+        }
+      ],
+      "creatures": [
+        {
+          "id": "quarry-creature-3",
+          "name": "quarry brute",
+          "aliases": [
+            "creature"
+          ],
+          "description": "A quarry brute patrols ore shelf. Its attention follows every footstep.",
+          "health": 135,
+          "damage": 11,
+          "experience": 100,
+          "gold": 24,
+          "respawnMs": 180000,
+          "loot": [
+            "healing-draught"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "quarry-4",
+      "name": "Black Kiln",
+      "area": "Cinder Quarry",
+      "recommendedLevel": 5,
+      "description": "Cinder Quarry [recommended level 5-6]. A faded waystone leans toward the trail.",
+      "exits": {
+        "south": "quarry-3",
+        "north": "quarry-5"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "A pilgrim carved: \"Beyond the last landmark, SEARCH. The old ways lie beneath.\""
+        }
+      ]
+    },
+    {
+      "id": "quarry-5",
+      "name": "Slag Channel",
+      "area": "Cinder Quarry",
+      "recommendedLevel": 5,
+      "description": "Cinder Quarry [recommended level 5-6]. An abandoned camp smells faintly of cloves.",
+      "exits": {
+        "south": "quarry-4",
+        "north": "abbey-0"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "The bedroll is empty. A note says: \"Return to Vale after the guardian falls.\""
+        }
+      ],
+      "creatures": [
+        {
+          "id": "quarry-creature-5",
+          "name": "slag beetle",
+          "aliases": [
+            "creature"
+          ],
+          "description": "A slag beetle patrols slag channel. Its attention follows every footstep.",
+          "health": 141,
+          "damage": 11,
+          "experience": 100,
+          "gold": 24,
+          "respawnMs": 180000,
+          "loot": []
+        }
+      ]
+    },
+    {
+      "id": "quarry-6",
+      "name": "Miners Rest",
+      "area": "Cinder Quarry",
+      "recommendedLevel": 5,
+      "description": "Cinder Quarry [recommended level 5-6]. A cracked bell lies half buried nearby.",
+      "exits": {
+        "west": "quarry-0"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "It makes no sound, but touching it sends a shiver northward."
+        }
+      ],
+      "creatures": [
+        {
+          "id": "quarry-creature-6",
+          "name": "ash revenant",
+          "aliases": [
+            "creature"
+          ],
+          "description": "A ash revenant patrols miners rest. Its attention follows every footstep.",
+          "health": 144,
+          "damage": 11,
+          "experience": 100,
+          "gold": 24,
+          "respawnMs": 180000,
+          "loot": [
+            "healing-draught"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "quarry-7",
+      "name": "Echo Shaft",
+      "area": "Cinder Quarry",
+      "recommendedLevel": 5,
+      "description": "Cinder Quarry [recommended level 5-6]. Footprints circle an untouched patch of moss.",
+      "exits": {
+        "west": "quarry-1"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "Every print points away from the center. Something slept here recently."
+        }
+      ],
+      "creatures": [
+        {
+          "id": "quarry-creature-7",
+          "name": "quarry brute",
+          "aliases": [
+            "creature"
+          ],
+          "description": "A quarry brute patrols echo shaft. Its attention follows every footstep.",
+          "health": 147,
+          "damage": 11,
+          "experience": 100,
+          "gold": 24,
+          "respawnMs": 180000,
+          "loot": []
+        }
+      ]
+    },
+    {
+      "id": "quarry-8",
+      "name": "Crystal Seam",
+      "area": "Cinder Quarry",
+      "recommendedLevel": 5,
+      "description": "Cinder Quarry [recommended level 5-6]. Old cloth ribbons mark a safe crossing.",
+      "exits": {
+        "west": "quarry-2"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "One ribbon is embroidered with the word Lanternwick."
+        }
+      ],
+      "creatures": [
+        {
+          "id": "quarry-creature-8",
+          "name": "cinder scavenger",
+          "aliases": [
+            "creature"
+          ],
+          "description": "A cinder scavenger patrols crystal seam. Its attention follows every footstep.",
+          "health": 150,
+          "damage": 11,
+          "experience": 100,
+          "gold": 24,
+          "respawnMs": 180000,
+          "loot": []
+        }
+      ]
+    },
+    {
+      "id": "quarry-9",
+      "name": "Sealed Lift",
+      "area": "Cinder Quarry",
+      "recommendedLevel": 5,
+      "description": "Cinder Quarry [recommended level 5-6]. Weathered stone conceals a seam in the earth.",
+      "exits": {
+        "west": "quarry-3"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "A cold draft rises from below. SEARCH may uncover a passage."
+        }
+      ],
+      "hiddenExits": {
+        "down": "quarry-boss"
+      },
+      "creatures": [
+        {
+          "id": "quarry-creature-9",
+          "name": "slag beetle",
+          "aliases": [
+            "creature"
+          ],
+          "description": "A slag beetle patrols sealed lift. Its attention follows every footstep.",
+          "health": 153,
+          "damage": 11,
+          "experience": 100,
+          "gold": 24,
+          "respawnMs": 180000,
+          "loot": [
+            "healing-draught"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "quarry-boss",
+      "name": "The Kiln Warden's Refuge",
+      "area": "Cinder Quarry",
+      "recommendedLevel": 6,
+      "description": "Here the road ends in a chamber untouched by daylight. The Kiln Warden stands over a cold copper lamp.",
+      "exits": {
+        "up": "quarry-9"
+      },
+      "creatures": [
+        {
+          "id": "quarry-guardian",
+          "name": "the kiln warden",
+          "aliases": [
+            "guardian",
+            "boss"
+          ],
+          "description": "The hidden guardian of Cinder Quarry. Defeat it and report to Keeper Vale.",
+          "health": 256,
+          "damage": 9,
+          "experience": 360,
+          "gold": 105,
+          "respawnMs": 600000,
+          "loot": [
+            "trail-blade-3",
+            "trail-focus-3",
+            "trail-armor-3"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "abbey-0",
+      "name": "Pilgrim Steps",
+      "area": "Sunken Abbey",
+      "recommendedLevel": 7,
+      "description": "Sunken Abbey [recommended level 7-8]. A trail of small bones ends at the waterline.",
+      "exits": {
+        "south": "quarry-5",
+        "north": "abbey-1",
+        "east": "abbey-6"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "The bones have been arranged into an arrow pointing north."
+        }
+      ],
+      "creatures": [
+        {
+          "id": "abbey-creature-0",
+          "name": "drowned pilgrim",
+          "aliases": [
+            "creature"
+          ],
+          "description": "A drowned pilgrim patrols pilgrim steps. Its attention follows every footstep.",
+          "health": 210,
+          "damage": 14,
+          "experience": 160,
+          "gold": 32,
+          "respawnMs": 180000,
+          "loot": [
+            "healing-draught"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "abbey-1",
+      "name": "Reed Cloister",
+      "area": "Sunken Abbey",
+      "recommendedLevel": 7,
+      "description": "Sunken Abbey [recommended level 7-8]. Someone has left a warm cup on a ruined wall.",
+      "exits": {
+        "south": "abbey-0",
+        "north": "abbey-2",
+        "east": "abbey-7"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "The cup bears the same copper mark as the lantern in town."
+        }
+      ],
+      "creatures": [
+        {
+          "id": "abbey-creature-1",
+          "name": "ink wraith",
+          "aliases": [
+            "creature"
+          ],
+          "description": "A ink wraith patrols reed cloister. Its attention follows every footstep.",
+          "health": 213,
+          "damage": 14,
+          "experience": 160,
+          "gold": 32,
+          "respawnMs": 180000,
+          "loot": []
+        }
+      ]
+    },
+    {
+      "id": "abbey-2",
+      "name": "Drowned Scriptorium",
+      "area": "Sunken Abbey",
+      "recommendedLevel": 7,
+      "description": "Sunken Abbey [recommended level 7-8]. A torn journal flutters against a branch.",
+      "exits": {
+        "south": "abbey-1",
+        "north": "abbey-3",
+        "east": "abbey-8"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "\"We counted five guardians. Each kept one lamp dark.\""
+        }
+      ],
+      "creatures": [
+        {
+          "id": "abbey-creature-2",
+          "name": "bell acolyte",
+          "aliases": [
+            "creature"
+          ],
+          "description": "A bell acolyte patrols drowned scriptorium. Its attention follows every footstep.",
+          "health": 216,
+          "damage": 14,
+          "experience": 160,
+          "gold": 32,
+          "respawnMs": 180000,
+          "loot": []
+        }
+      ]
+    },
+    {
+      "id": "abbey-3",
+      "name": "Bell Canal",
+      "area": "Sunken Abbey",
+      "recommendedLevel": 7,
+      "description": "Sunken Abbey [recommended level 7-8]. Fresh gouges scar the stone.",
+      "exits": {
+        "south": "abbey-2",
+        "north": "abbey-4",
+        "east": "abbey-9"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "The marks are too regular for claws: someone dragged a locked chest here."
+        }
+      ],
+      "creatures": [
+        {
+          "id": "abbey-creature-3",
+          "name": "grave knight",
+          "aliases": [
+            "creature"
+          ],
+          "description": "A grave knight patrols bell canal. Its attention follows every footstep.",
+          "health": 219,
+          "damage": 14,
+          "experience": 160,
+          "gold": 32,
+          "respawnMs": 180000,
+          "loot": [
+            "healing-draught"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "abbey-4",
+      "name": "Moss Refectory",
+      "area": "Sunken Abbey",
+      "recommendedLevel": 7,
+      "description": "Sunken Abbey [recommended level 7-8]. A faded waystone leans toward the trail.",
+      "exits": {
+        "south": "abbey-3",
+        "north": "abbey-5"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "A pilgrim carved: \"Beyond the last landmark, SEARCH. The old ways lie beneath.\""
+        }
+      ]
+    },
+    {
+      "id": "abbey-5",
+      "name": "Broken Choir",
+      "area": "Sunken Abbey",
+      "recommendedLevel": 7,
+      "description": "Sunken Abbey [recommended level 7-8]. An abandoned camp smells faintly of cloves.",
+      "exits": {
+        "south": "abbey-4",
+        "north": "crown-0"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "The bedroll is empty. A note says: \"Return to Vale after the guardian falls.\""
+        }
+      ],
+      "creatures": [
+        {
+          "id": "abbey-creature-5",
+          "name": "ink wraith",
+          "aliases": [
+            "creature"
+          ],
+          "description": "A ink wraith patrols broken choir. Its attention follows every footstep.",
+          "health": 225,
+          "damage": 14,
+          "experience": 160,
+          "gold": 32,
+          "respawnMs": 180000,
+          "loot": []
+        }
+      ]
+    },
+    {
+      "id": "abbey-6",
+      "name": "Flooded Vestry",
+      "area": "Sunken Abbey",
+      "recommendedLevel": 7,
+      "description": "Sunken Abbey [recommended level 7-8]. A cracked bell lies half buried nearby.",
+      "exits": {
+        "west": "abbey-0"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "It makes no sound, but touching it sends a shiver northward."
+        }
+      ],
+      "creatures": [
+        {
+          "id": "abbey-creature-6",
+          "name": "bell acolyte",
+          "aliases": [
+            "creature"
+          ],
+          "description": "A bell acolyte patrols flooded vestry. Its attention follows every footstep.",
+          "health": 228,
+          "damage": 14,
+          "experience": 160,
+          "gold": 32,
+          "respawnMs": 180000,
+          "loot": [
+            "healing-draught"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "abbey-7",
+      "name": "Saints Walk",
+      "area": "Sunken Abbey",
+      "recommendedLevel": 7,
+      "description": "Sunken Abbey [recommended level 7-8]. Footprints circle an untouched patch of moss.",
+      "exits": {
+        "west": "abbey-1"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "Every print points away from the center. Something slept here recently."
+        }
+      ],
+      "creatures": [
+        {
+          "id": "abbey-creature-7",
+          "name": "grave knight",
+          "aliases": [
+            "creature"
+          ],
+          "description": "A grave knight patrols saints walk. Its attention follows every footstep.",
+          "health": 231,
+          "damage": 14,
+          "experience": 160,
+          "gold": 32,
+          "respawnMs": 180000,
+          "loot": []
+        }
+      ]
+    },
+    {
+      "id": "abbey-8",
+      "name": "Ossuary Gate",
+      "area": "Sunken Abbey",
+      "recommendedLevel": 7,
+      "description": "Sunken Abbey [recommended level 7-8]. Old cloth ribbons mark a safe crossing.",
+      "exits": {
+        "west": "abbey-2"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "One ribbon is embroidered with the word Lanternwick."
+        }
+      ],
+      "creatures": [
+        {
+          "id": "abbey-creature-8",
+          "name": "drowned pilgrim",
+          "aliases": [
+            "creature"
+          ],
+          "description": "A drowned pilgrim patrols ossuary gate. Its attention follows every footstep.",
+          "health": 234,
+          "damage": 14,
+          "experience": 160,
+          "gold": 32,
+          "respawnMs": 180000,
+          "loot": []
+        }
+      ]
+    },
+    {
+      "id": "abbey-9",
+      "name": "Blind Chapel",
+      "area": "Sunken Abbey",
+      "recommendedLevel": 7,
+      "description": "Sunken Abbey [recommended level 7-8]. Weathered stone conceals a seam in the earth.",
+      "exits": {
+        "west": "abbey-3"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "A cold draft rises from below. SEARCH may uncover a passage."
+        }
+      ],
+      "hiddenExits": {
+        "down": "abbey-boss"
+      },
+      "creatures": [
+        {
+          "id": "abbey-creature-9",
+          "name": "ink wraith",
+          "aliases": [
+            "creature"
+          ],
+          "description": "A ink wraith patrols blind chapel. Its attention follows every footstep.",
+          "health": 237,
+          "damage": 14,
+          "experience": 160,
+          "gold": 32,
+          "respawnMs": 180000,
+          "loot": [
+            "healing-draught"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "abbey-boss",
+      "name": "The Bellless Prior's Refuge",
+      "area": "Sunken Abbey",
+      "recommendedLevel": 8,
+      "description": "Here the road ends in a chamber untouched by daylight. The Bellless Prior stands over a cold copper lamp.",
+      "exits": {
+        "up": "abbey-9"
+      },
+      "creatures": [
+        {
+          "id": "abbey-guardian",
+          "name": "the bellless prior",
+          "aliases": [
+            "guardian",
+            "boss"
+          ],
+          "description": "The hidden guardian of Sunken Abbey. Defeat it and report to Keeper Vale.",
+          "health": 424,
+          "damage": 11,
+          "experience": 480,
+          "gold": 140,
+          "respawnMs": 600000,
+          "loot": [
+            "trail-blade-4",
+            "trail-focus-4",
+            "trail-armor-4"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "crown-0",
+      "name": "Kings Road",
+      "area": "Hollow Crown",
+      "recommendedLevel": 9,
+      "description": "Hollow Crown [recommended level 9-10]. A trail of small bones ends at the waterline.",
+      "exits": {
+        "south": "abbey-5",
+        "north": "crown-1",
+        "east": "crown-6"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "The bones have been arranged into an arrow pointing north."
+        }
+      ],
+      "creatures": [
+        {
+          "id": "crown-creature-0",
+          "name": "oathbreaker",
+          "aliases": [
+            "creature"
+          ],
+          "description": "A oathbreaker patrols kings road. Its attention follows every footstep.",
+          "health": 318,
+          "damage": 17,
+          "experience": 240,
+          "gold": 40,
+          "respawnMs": 180000,
+          "loot": [
+            "healing-draught"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "crown-1",
+      "name": "Spear Field",
+      "area": "Hollow Crown",
+      "recommendedLevel": 9,
+      "description": "Hollow Crown [recommended level 9-10]. Someone has left a warm cup on a ruined wall.",
+      "exits": {
+        "south": "crown-0",
+        "north": "crown-2",
+        "east": "crown-7"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "The cup bears the same copper mark as the lantern in town."
+        }
+      ],
+      "creatures": [
+        {
+          "id": "crown-creature-1",
+          "name": "crown shade",
+          "aliases": [
+            "creature"
+          ],
+          "description": "A crown shade patrols spear field. Its attention follows every footstep.",
+          "health": 321,
+          "damage": 17,
+          "experience": 240,
+          "gold": 40,
+          "respawnMs": 180000,
+          "loot": []
+        }
+      ]
+    },
+    {
+      "id": "crown-2",
+      "name": "Empty Watch",
+      "area": "Hollow Crown",
+      "recommendedLevel": 9,
+      "description": "Hollow Crown [recommended level 9-10]. A torn journal flutters against a branch.",
+      "exits": {
+        "south": "crown-1",
+        "north": "crown-3",
+        "east": "crown-8"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "\"We counted five guardians. Each kept one lamp dark.\""
+        }
+      ],
+      "creatures": [
+        {
+          "id": "crown-creature-2",
+          "name": "hollow lancer",
+          "aliases": [
+            "creature"
+          ],
+          "description": "A hollow lancer patrols empty watch. Its attention follows every footstep.",
+          "health": 324,
+          "damage": 17,
+          "experience": 240,
+          "gold": 40,
+          "respawnMs": 180000,
+          "loot": []
+        }
+      ]
+    },
+    {
+      "id": "crown-3",
+      "name": "Crown Bridge",
+      "area": "Hollow Crown",
+      "recommendedLevel": 9,
+      "description": "Hollow Crown [recommended level 9-10]. Fresh gouges scar the stone.",
+      "exits": {
+        "south": "crown-2",
+        "north": "crown-4",
+        "east": "crown-9"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "The marks are too regular for claws: someone dragged a locked chest here."
+        }
+      ],
+      "creatures": [
+        {
+          "id": "crown-creature-3",
+          "name": "royal revenant",
+          "aliases": [
+            "creature"
+          ],
+          "description": "A royal revenant patrols crown bridge. Its attention follows every footstep.",
+          "health": 327,
+          "damage": 17,
+          "experience": 240,
+          "gold": 40,
+          "respawnMs": 180000,
+          "loot": [
+            "healing-draught"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "crown-4",
+      "name": "Fallen Court",
+      "area": "Hollow Crown",
+      "recommendedLevel": 9,
+      "description": "Hollow Crown [recommended level 9-10]. A faded waystone leans toward the trail.",
+      "exits": {
+        "south": "crown-3",
+        "north": "crown-5"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "A pilgrim carved: \"Beyond the last landmark, SEARCH. The old ways lie beneath.\""
+        }
+      ]
+    },
+    {
+      "id": "crown-5",
+      "name": "Cinder Garden",
+      "area": "Hollow Crown",
+      "recommendedLevel": 9,
+      "description": "Hollow Crown [recommended level 9-10]. An abandoned camp smells faintly of cloves.",
+      "exits": {
+        "south": "crown-4"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "The bedroll is empty. A note says: \"Return to Vale after the guardian falls.\""
+        }
+      ],
+      "creatures": [
+        {
+          "id": "crown-creature-5",
+          "name": "crown shade",
+          "aliases": [
+            "creature"
+          ],
+          "description": "A crown shade patrols cinder garden. Its attention follows every footstep.",
+          "health": 333,
+          "damage": 17,
+          "experience": 240,
+          "gold": 40,
+          "respawnMs": 180000,
+          "loot": []
+        }
+      ]
+    },
+    {
+      "id": "crown-6",
+      "name": "Throne Approach",
+      "area": "Hollow Crown",
+      "recommendedLevel": 9,
+      "description": "Hollow Crown [recommended level 9-10]. A cracked bell lies half buried nearby.",
+      "exits": {
+        "west": "crown-0"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "It makes no sound, but touching it sends a shiver northward."
+        }
+      ],
+      "creatures": [
+        {
+          "id": "crown-creature-6",
+          "name": "hollow lancer",
+          "aliases": [
+            "creature"
+          ],
+          "description": "A hollow lancer patrols throne approach. Its attention follows every footstep.",
+          "health": 336,
+          "damage": 17,
+          "experience": 240,
+          "gold": 40,
+          "respawnMs": 180000,
+          "loot": [
+            "healing-draught"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "crown-7",
+      "name": "Glass Gallery",
+      "area": "Hollow Crown",
+      "recommendedLevel": 9,
+      "description": "Hollow Crown [recommended level 9-10]. Footprints circle an untouched patch of moss.",
+      "exits": {
+        "west": "crown-1"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "Every print points away from the center. Something slept here recently."
+        }
+      ],
+      "creatures": [
+        {
+          "id": "crown-creature-7",
+          "name": "royal revenant",
+          "aliases": [
+            "creature"
+          ],
+          "description": "A royal revenant patrols glass gallery. Its attention follows every footstep.",
+          "health": 339,
+          "damage": 17,
+          "experience": 240,
+          "gold": 40,
+          "respawnMs": 180000,
+          "loot": []
+        }
+      ]
+    },
+    {
+      "id": "crown-8",
+      "name": "Oath Vault",
+      "area": "Hollow Crown",
+      "recommendedLevel": 9,
+      "description": "Hollow Crown [recommended level 9-10]. Old cloth ribbons mark a safe crossing.",
+      "exits": {
+        "west": "crown-2"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "One ribbon is embroidered with the word Lanternwick."
+        }
+      ],
+      "creatures": [
+        {
+          "id": "crown-creature-8",
+          "name": "oathbreaker",
+          "aliases": [
+            "creature"
+          ],
+          "description": "A oathbreaker patrols oath vault. Its attention follows every footstep.",
+          "health": 342,
+          "damage": 17,
+          "experience": 240,
+          "gold": 40,
+          "respawnMs": 180000,
+          "loot": []
+        }
+      ]
+    },
+    {
+      "id": "crown-9",
+      "name": "Last Stair",
+      "area": "Hollow Crown",
+      "recommendedLevel": 9,
+      "description": "Hollow Crown [recommended level 9-10]. Weathered stone conceals a seam in the earth.",
+      "exits": {
+        "west": "crown-3"
+      },
+      "features": [
+        {
+          "name": "signs",
+          "aliases": [
+            "journal",
+            "stone",
+            "bell",
+            "tracks",
+            "camp"
+          ],
+          "description": "A cold draft rises from below. SEARCH may uncover a passage."
+        }
+      ],
+      "hiddenExits": {
+        "down": "crown-boss"
+      },
+      "creatures": [
+        {
+          "id": "crown-creature-9",
+          "name": "crown shade",
+          "aliases": [
+            "creature"
+          ],
+          "description": "A crown shade patrols last stair. Its attention follows every footstep.",
+          "health": 345,
+          "damage": 17,
+          "experience": 240,
+          "gold": 40,
+          "respawnMs": 180000,
+          "loot": [
+            "healing-draught"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "crown-boss",
+      "name": "The Hollow Regent's Refuge",
+      "area": "Hollow Crown",
+      "recommendedLevel": 10,
+      "description": "Here the road ends in a chamber untouched by daylight. The Hollow Regent stands over a cold copper lamp.",
+      "exits": {
+        "up": "crown-9"
+      },
+      "creatures": [
+        {
+          "id": "crown-guardian",
+          "name": "the hollow regent",
+          "aliases": [
+            "guardian",
+            "boss"
+          ],
+          "description": "The hidden guardian of Hollow Crown. Defeat it and report to Keeper Vale.",
+          "health": 640,
+          "damage": 13,
+          "experience": 600,
+          "gold": 175,
+          "respawnMs": 600000,
+          "loot": [
+            "trail-blade-5",
+            "trail-focus-5",
+            "trail-armor-5"
+          ]
+        }
+      ]
     }
   ]
 }

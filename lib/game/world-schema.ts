@@ -20,6 +20,8 @@ const creatureSchema = z.object({
   name: z.string().min(1),
   aliases: z.array(z.string().min(1)).default([]),
   description: z.string().min(1),
+  respawnMs: z.number().int().min(1000).default(180000),
+  gold: z.number().int().nonnegative().default(5),
   health: z.number().int().positive(),
   damage: z.number().int().nonnegative(),
   damageType: z.enum(["physical", "magic"]).default("physical"),
@@ -61,6 +63,10 @@ const roomSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
   description: z.string().min(1),
+  area: z.string().default("Lanternwick"),
+  recommendedLevel: z.number().int().positive().default(1),
+  hiddenExits: z.partialRecord(directionSchema, z.string().min(1)).default({}),
+  shop: z.array(z.string()).default([]),
   exits: z.partialRecord(directionSchema, z.string().min(1)),
   features: z.array(featureSchema).default([]),
   creatures: z.array(creatureSchema).default([]),
@@ -97,7 +103,7 @@ export const worldPackSchema = z
     }
 
     for (const [roomIndex, room] of world.rooms.entries()) {
-      for (const [direction, destination] of Object.entries(room.exits)) {
+      for (const [direction, destination] of Object.entries({ ...room.exits, ...room.hiddenExits })) {
         if (!roomIds.has(destination)) {
           context.addIssue({
             code: "custom",

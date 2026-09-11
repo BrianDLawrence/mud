@@ -1,51 +1,47 @@
-# First Adventure
+# First Adventure: the Lanternwick road
 
-The First Adventure turns the framework into a complete level 1–3 role-playing loop. It is intentionally compact: every system has enough content to prove that it works without hiding the rules behind a large world.
+The first adventure now supports solo levels 1–10 across 63 rooms. Lanternwick is the working town name; Emberford and Copperhollow are alternatives. The Copper Lantern remains the starting inn, preserving existing character locations and the original orchard quest.
 
-## Character disciplines
+| Region | Recommended levels | Hidden guardian |
+|---|---|---|
+| Drowned Orchard | 1–2 | The Graftmother |
+| Briarwood | 3–4 | The Antler Widow |
+| Cinder Quarry | 5–6 | The Kiln Warden |
+| Sunken Abbey | 7–8 | The Bellless Prior |
+| Hollow Crown | 9–10 | The Hollow Regent |
 
-Every new or existing unsworn character chooses one permanent discipline before entering the terminal. Characters bound before the roster expanded receive one re-selection:
+Each region has a six-room northbound spine, four optional eastern branches, and a concealed guardian room. EXAMINE signs supplies clues; SEARCH reveals hidden exits permanently for that character. MAP records visited rooms and their routes, with unknown destinations marked ???. The original Root Cellar encounter is still available.
 
-| Discipline | Strength | Signature command | Starting resource |
-|---|---|---|---|
-| Vanguard | Might, vitality, and health | `GUARD` reduces the next retaliation | 64 HP |
-| Wayfinder | Agility and deliberate weapon attacks | `AIM` adds damage to the next attack volley | 52 HP |
-| Arcanist | Intellect and focused spell damage | `CAST EMBER <target>` costs 6 mana | 46 HP / 28 MP |
-| Paladin | Heavy armor and minor holy magic | `SMITE <target>` and `PRAY` spend mana | 64 HP / 24 MP |
-| Witch Hunter | Medium armor and rejection of magic | Passive 60% magic resistance and 50% magical healing | 58 HP |
-| Rogue | Light armor, speed, and stealth | `SNEAK`, then `BACKSTAB <target>` | 46 HP |
+## Getting started
 
-The choice grants and equips a discipline starter item. The server owns the choice and rejects attempts to change it. The web and Discord Activity clients use the same endpoint and character state.
+Choose one of the six disciplines. TALK KEEPER and ACCEPT ORCHARD start the original quest. Travel NORTH twice, ATTACK CRAWLER, LOOT, and DOWN to face the rootbound keeper. Return to the inn and TALK KEEPER for rewards and the next assignment. Follow the road north from the Drowned Orchard to explore the expanded regions. TALK KEEPER turns in ready quests before offering more work. QUESTS tracks progress.
 
-## Adventure path
+Lanternwick has a smith on Market Lane (east of the inn) and an apothecary east of the market. SHOP lists stock, BUY <item> purchases, and SELL <item> sells an unequipped item for one third of its price, minimum one gold. Characters start with 15 gold; kills award more. The legacy copper-coins item remains a sellable keepsake.
 
-1. `TALK KEEPER` at the Copper Lantern.
-2. `ACCEPT ORCHARD` to begin **Beneath Black Roots**.
-3. Travel north to the Drowned Orchard and defeat the marsh crawler.
-4. `LOOT`, then `EQUIP CRAWLER CHITIN` for improved armor.
-5. Travel `DOWN` and defeat the rootbound keeper.
-6. Return to Keeper Vale and `TALK KEEPER` to complete the quest.
+## Equipment and supplies
 
-The crawler, boss, and quest reward total 200 XP, bringing a new character to level 3. Level-ups increase maximum health, increase maximum mana for mana users, and fully restore both resources.
+INVENTORY groups stacks and marks worn items [E]. EQUIPMENT shows a text figure, occupied weapon/armor/focus slots, power and armor. EQUIP <item> replaces a slot without deleting the old item; UNEQUIP <slot> returns it to the pack. Armor training and discipline restrictions still apply.
 
-## Deterministic rules
+Five tiers of trail equipment provide increasing weapon/focus power and armor. Blades add Might, foci add Intellect, and armor adds Agility. Guardian loot supplies all three choices so every discipline can progress. Bonuses are derived from equipped items, never permanently added to base attributes, preventing equip/unequip stacking.
 
-- Maximum HP is derived from Vitality and level; mana unlocks at high Intellect and scales with level.
-- Weapon damage is derived from Might, the equipped weapon, and an optional Aim bonus.
-- Agility determines attack cadence, whether a volley strikes one, two, or three times, and physical critical-hit chance.
-- Starting an attack begins a timed exchange. `STOP` halts player attacks, but the creature continues until the player moves away, wins, or dies.
-- Ember damage is derived from Intellect and the equipped focus.
-- Physical damage is reduced by equipped armor and an optional Guard bonus. Magic damage ignores armor but respects class resistance.
-- Loot remains on the ground in the room until the character uses `LOOT`.
-- Rest restores HP and MP outside combat only.
-- Defeat returns the character to the Copper Lantern at half HP and MP. Experience, inventory, equipment, quests, and defeated creatures are retained.
+USE healing draught restores 40 HP; USE mana draught restores 24 MP. Supplies and equipment changes are available outside combat. Full resources do not consume a draught. REST remains a free recovery option outside combat. A player can flee, recover and retry.
 
-All calculations happen in the framework-independent command engine. The browser submits text and renders semantic messages; it never decides damage, rewards, or progression.
+## Stats and progression
 
-## Existing character migration
+STATS shows base attributes and totals including gear:
 
-Character snapshots are normalized when loaded. Legacy inventory display strings are mapped to stable item IDs, old active combats receive safe timing defaults, and new fields receive safe defaults. Existing characters retain their room, HP, XP, inventory, and defeated-creature progress. A discipline revision grants characters from the three-class release one opportunity to reaffirm or change their path. The normalized snapshot is persisted by the next successful compare-and-set update, so no one-off database migration is required for this milestone.
+- Might contributes to physical damage. Each level also adds one physical damage.
+- Agility controls attack interval (minimum 1.4 seconds), attacks per volley (1/2/3 at agility 0/4/7), and critical chance (capped at 40%).
+- Intellect contributes to spell damage and starting mana. Arcanist automatic attacks use the higher of weapon and focus power.
+- Vitality sets initial maximum health: 34 + 6 × Vitality. Each level adds 6 HP. Mana users gain 4 MP per level. Level-ups fully restore resources.
+- Armor reduces physical damage; class magic resistance applies to magic damage. Existing discipline abilities remain available.
 
-## Intentional limits
+Cumulative XP thresholds: 0, 100, 200, 600, 1400, 2800, 4800, 7600, 11200, 16000. This preserves the original level-three opening and stretches later progression. Ordinary creatures return after three minutes; guardians after ten minutes. Timers use server time and persist per character. Permanent kill history separately records quest objectives. Defeat preserves XP, gold, items and quest progress.
 
-The boss is currently per-character, not a shared party encounter. Creatures do not respawn, shops are not implemented, and discipline selection cannot be reset through the UI. Those are explicit follow-on systems rather than hidden client behavior.
+## Pacing and validation
+
+The target is at least two hours of exploration, fighting, recovery, side paths and repeat encounters. This is a content/balance baseline, not a verified two-hour playtime claim. A complete unique clear does not supply all 16,000 XP; later levels intentionally require some repeat encounters. Automated tests verify connected routes, hidden discoveries, respawn boundaries, trading, bonus removal, quest turn-ins, repeat XP to level ten, and all six disciplines defeating each guardian at the region's upper recommended level with previous-tier equipment.
+
+Human playtesting is still needed to measure discovery time and tune encounter density, XP and class difficulty. Encounters and respawns are per-character; room chat/presence remains shared. No shared boss locking or party loot distribution is introduced.
+
+The entry screen uses original ASCII ornament and a colored monospace title inspired by BBS door-game presentation. It uses text and CSS colors, with no image assets or copied LORD artwork.

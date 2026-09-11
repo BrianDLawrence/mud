@@ -20,6 +20,10 @@ const noviceAttributes: CharacterAttributes = {
 
 export function createInitialCharacterState(): CharacterState {
   return {
+    gold: 15,
+    respawnAt: {},
+    discoveredRoomIds: [firstLightWorld.entryRoomId],
+    searchedRoomIds: [],
     roomId: firstLightWorld.entryRoomId,
     disciplineRevision: 0,
     attributes: { ...noviceAttributes },
@@ -94,6 +98,10 @@ export function normalizeCharacterState(input: CharacterState): CharacterState {
     : undefined;
 
   return {
+    gold: finiteNonnegative(source.gold, 15),
+    respawnAt: { ...(source.respawnAt ?? {}) },
+    discoveredRoomIds: [...(source.discoveredRoomIds ?? [source.roomId || fallback.roomId])],
+    searchedRoomIds: [...(source.searchedRoomIds ?? [])],
     roomId: source.roomId || fallback.roomId,
     discipline,
     disciplineRevision: Math.floor(

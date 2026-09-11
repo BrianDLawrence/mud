@@ -67,6 +67,10 @@ export interface ActiveCombat {
 }
 
 export interface CharacterState {
+  gold: number;
+  respawnAt: Record<string, number>;
+  discoveredRoomIds: string[];
+  searchedRoomIds: string[];
   roomId: string;
   discipline?: DisciplineId;
   disciplineRevision: number;

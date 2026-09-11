@@ -1,6 +1,8 @@
 import { normalizeCharacterState } from "@/lib/game/character-state";
 import { disciplines } from "@/lib/game/disciplines";
 import {
+  effectiveAttributes,
+  getItem,
   equipmentArmor,
   equipmentPower,
   findCarriedItem,
@@ -34,7 +36,7 @@ const helpText = [
   "loot",
   "inventory",
   "equipment",
-  "equip <item>",
+  "equip <item>", "unequip <slot>", "shop / buy <item> / sell <item>", "use <item>", "search", "map",
   "talk <person>",
   "accept <quest>",
   "quests",
@@ -78,7 +80,7 @@ function matchesQuest(target: string, quest: Quest): boolean {
 
 function visibleCreatures(room: Room, state: CharacterState): Creature[] {
   return room.creatures.filter(
-    (creature) => !state.defeatedCreatureIds.includes(creature.id),
+    (creature) => !state.respawnAt[creature.id],
   );
 }
 
@@ -90,7 +92,7 @@ function roomLoot(state: CharacterState): string[] {
 
 function describeRoom(state: CharacterState): GameMessage[] {
   const room = getRoom(state.roomId);
-  const exits = Object.keys(room.exits);
+  const exits = Object.keys({ ...room.exits, ...(state.searchedRoomIds.includes(room.id) ? room.hiddenExits : {}) });
   const creatures = visibleCreatures(room, state);
   const loot = roomLoot(state);
 
@@ -120,7 +122,8 @@ function describeRoom(state: CharacterState): GameMessage[] {
 function move(state: CharacterState, requestedDirection: string): CommandResult {
   const direction = directionAliases[requestedDirection] ?? requestedDirection;
   const room = getRoom(state.roomId);
-  const destination = room.exits[direction as keyof typeof room.exits];
+  const exits = { ...room.exits, ...(state.searchedRoomIds.includes(room.id) ? room.hiddenExits : {}) };
+  const destination = exits[direction as keyof typeof exits];
 
   if (!destination) {
     return {
@@ -133,6 +136,7 @@ function move(state: CharacterState, requestedDirection: string): CommandResult 
   const nextState = {
     ...state,
     roomId: destination,
+    discoveredRoomIds: [...new Set([...state.discoveredRoomIds, destination])],
     combat: undefined,
     guarding: undefined,
     aiming: undefined,
@@ -147,8 +151,10 @@ function move(state: CharacterState, requestedDirection: string): CommandResult 
   };
 }
 
+export const XP_THRESHOLDS = [0, 100, 200, 600, 1400, 2800, 4800, 7600, 11200, 16000];
+
 function levelForExperience(experience: number): number {
-  return Math.min(firstLightWorld.levelRange.max, Math.floor(experience / 100) + 1);
+  return XP_THRESHOLDS.filter((threshold) => experience >= threshold).length;
 }
 
 function awardExperience(
@@ -213,6 +219,7 @@ function markQuestObjectives(state: CharacterState, creatureId: string): GameMes
 function defeatCreature(
   state: CharacterState,
   creature: Creature,
+  nowMs: number,
 ): CommandResult {
   const defeatedState: CharacterState = {
     ...state,
@@ -220,7 +227,9 @@ function defeatCreature(
     guarding: undefined,
     aiming: undefined,
     sneaking: undefined,
-    defeatedCreatureIds: [...state.defeatedCreatureIds, creature.id],
+    gold: state.gold + creature.gold,
+    respawnAt: { ...state.respawnAt, [creature.id]: nowMs + creature.respawnMs },
+    defeatedCreatureIds: [...new Set([...state.defeatedCreatureIds, creature.id])],
     groundLoot:
       creature.loot.length > 0
         ? [
@@ -234,7 +243,7 @@ function defeatCreature(
   return {
     state: progress.state,
     messages: [
-      message("combat", `${creature.name} falls still.`),
+      message("combat", `${creature.name} falls still. You collect ${creature.gold} gold.`),
       ...progress.messages,
       ...(creature.loot.length > 0
         ? [
@@ -279,7 +288,7 @@ function isCriticalHit(
   state: CharacterState,
   creatureHealth: number,
   sequence: number,
-  offensiveStat = state.attributes.agility,
+  offensiveStat = effectiveAttributes(state).agility,
 ): boolean {
   const roll =
     ((sequence * 41 +
@@ -326,6 +335,7 @@ function damageCreature(
   creature: Creature,
   damage: number,
   text: string,
+  nowMs: number,
 ): CommandResult {
   if (!state.combat) return { state, messages: [] };
 
@@ -339,7 +349,7 @@ function damageCreature(
     return { state: nextState, messages: [strike] };
   }
 
-  const defeated = defeatCreature(nextState, creature);
+  const defeated = defeatCreature(nextState, creature, nowMs);
   return { state: defeated.state, messages: [strike, ...defeated.messages] };
 }
 
@@ -352,12 +362,13 @@ function playerVolley(
 
   let workingState = state;
   const messages: GameMessage[] = [];
-  const hits = attacksPerVolley(state.attributes.agility);
+  const hits = attacksPerVolley(effectiveAttributes(state).agility);
   const aimedBonus = state.aiming ? 3 : 0;
   const baseDamage =
     3 +
-    Math.floor(state.attributes.might / 2) +
-    equipmentPower(state.equipment, "weapon") +
+    (state.level - 1) +
+    Math.floor(effectiveAttributes(state).might / 2) +
+    (state.discipline === "arcanist" ? Math.max(equipmentPower(state.equipment, "weapon"), equipmentPower(state.equipment, "focus")) : equipmentPower(state.equipment, "weapon")) +
     aimedBonus;
 
   for (let hit = 1; hit <= hits && workingState.combat; hit += 1) {
@@ -378,6 +389,7 @@ function playerVolley(
       `${critical ? "CRITICAL! " : ""}${
         hits > 1 ? `Hit ${hit}/${hits}: ` : ""
       }You strike ${creature.name}`,
+      attackAt,
     );
     workingState = result.state;
     messages.push(...result.messages);
@@ -482,7 +494,7 @@ export function advanceCombat(
   const creature = getRoom(state.roomId).creatures.find(
     (candidate) => candidate.id === state.combat?.creatureId,
   );
-  if (!creature || state.defeatedCreatureIds.includes(creature.id)) {
+  if (!creature || (state.respawnAt[creature.id] ?? 0) > nowMs) {
     return { state: { ...state, combat: undefined }, messages: [] };
   }
 
@@ -527,7 +539,7 @@ export function advanceCombat(
         ...state.combat,
         nextPlayerAttackAt:
           state.combat.playerAttacking && state.combat.nextPlayerAttackAt <= nowMs
-            ? nowMs + playerAttackIntervalMs(state.attributes.agility)
+            ? nowMs + playerAttackIntervalMs(effectiveAttributes(state).agility)
             : state.combat.nextPlayerAttackAt,
         nextCreatureAttackAt:
           state.combat.nextCreatureAttackAt <= nowMs
@@ -617,7 +629,7 @@ function specialAttack(
       ...engaged.combat!,
       sequence: sequence + 1,
       nextPlayerAttackAt:
-        nowMs + playerAttackIntervalMs(engaged.attributes.agility),
+        nowMs + playerAttackIntervalMs(effectiveAttributes(engaged).agility),
     },
   };
   return damageCreature(
@@ -625,6 +637,7 @@ function specialAttack(
     creature,
     baseDamage * (critical ? 2 : 1),
     `${critical ? "CRITICAL! " : ""}${attackText} ${creature.name}`,
+    nowMs,
   );
 }
 
@@ -665,7 +678,7 @@ function cast(
   const castingState = { ...state, mana: state.mana - 6, aiming: undefined };
   const damage =
     5 +
-    state.attributes.intellect +
+    effectiveAttributes(state).intellect +
     equipmentPower(state.equipment, "focus");
   const result = specialAttack(
     castingState,
@@ -673,7 +686,7 @@ function cast(
     nowMs,
     damage,
     "Your ember burns",
-    state.attributes.intellect,
+    effectiveAttributes(state).intellect,
   );
   return {
     state: result.state,
@@ -711,9 +724,9 @@ function smite(
     castingState,
     creature,
     nowMs,
-    5 + Math.floor(state.attributes.might / 2) + state.attributes.intellect,
+    5 + Math.floor(effectiveAttributes(state).might / 2) + effectiveAttributes(state).intellect,
     "Your smite sears",
-    state.attributes.intellect,
+    effectiveAttributes(state).intellect,
   );
   return {
     state: result.state,
@@ -781,10 +794,10 @@ function backstab(
     creature,
     nowMs,
     5 +
-      Math.floor(state.attributes.might / 2) +
+      Math.floor(effectiveAttributes(state).might / 2) +
       equipmentPower(state.equipment, "weapon"),
     "You backstab",
-    state.attributes.agility,
+    effectiveAttributes(state).agility,
     true,
   );
 }
@@ -842,6 +855,7 @@ function loot(state: CharacterState): CommandResult {
 }
 
 function equip(state: CharacterState, target: string): CommandResult {
+  if (state.combat) return { state, messages: [message("error", "Finish the fight before changing equipment.")] };
   const item = findCarriedItem(state, target);
   if (!item) {
     return {
@@ -937,9 +951,12 @@ function talk(state: CharacterState, target: string): CommandResult {
     };
   }
 
-  const quest = firstLightWorld.quests.find(
-    (candidate) => npc.questIds.includes(candidate.id),
+  const available = firstLightWorld.quests.filter((candidate) =>
+    npc.questIds.includes(candidate.id) && !state.quests.some((p) => p.questId === candidate.id && p.status === "completed"),
   );
+  const quest = available.find((q) => state.defeatedCreatureIds.includes(q.objective.creatureId) && state.quests.some((p) => p.questId === q.id))
+    ?? available.find((q) => state.quests.some((p) => p.questId === q.id))
+    ?? available[0];
   if (!quest) {
     return { state, messages: [message("speech", npc.dialogue)] };
   }
@@ -1042,13 +1059,13 @@ function abilityMessages(state: CharacterState): GameMessage[] {
 
 function equipmentMessages(state: CharacterState): GameMessage[] {
   const slots = (["weapon", "armor", "focus"] as const)
-    .map((slot) => `${slot}: ${state.equipment[slot] ? itemName(state.equipment[slot]!) : "none"}`)
-    .join(" · ");
+    .map((slot) => `${slot.toUpperCase().padEnd(6)}: ${state.equipment[slot] ? itemName(state.equipment[slot]!) : "none"}`)
+    .join("\n");
   return [
-    message("status", slots),
+    message("status", `    O\n   /|\\   EQUIPPED\n   / \\\n${slots}`),
     message(
       "system",
-      `Armor ${equipmentArmor(state.equipment)} · Training ${
+      `Weapon power ${equipmentPower(state.equipment, "weapon")} | Focus power ${equipmentPower(state.equipment, "focus")} | Armor ${equipmentArmor(state.equipment)} · Training ${
         state.discipline ? disciplines[state.discipline].armorTraining : "none"
       }.`,
     ),
@@ -1065,6 +1082,8 @@ export function executeCommand(
   options: ExecuteCommandOptions = {},
 ): CommandResult {
   const state = normalizeCharacterState(currentState);
+  const clock = options.nowMs ?? Date.now();
+  state.respawnAt = Object.fromEntries(Object.entries(state.respawnAt).filter(([, at]) => at > clock));
   const command = rawCommand.trim();
 
   if (!command) return { state, messages: [] };
@@ -1101,6 +1120,20 @@ export function executeCommand(
   }
 
   switch (verb) {
+    case "search": {
+      if (state.combat) return { state, messages: [message("error", "Finish the fight before searching.")] };
+      const room = getRoom(state.roomId);
+      state.searchedRoomIds = [...new Set([...state.searchedRoomIds, room.id])];
+      return { state, messages: [message("narrative", Object.keys(room.hiddenExits).length ? `Behind the weathered stone you discover a passage: ${Object.keys(room.hiddenExits).join(", ")}.` : "You search carefully. No concealed passages here."), ...describeRoom(state)] };
+    }
+    case "map":
+      return { state, messages: [message("exits", "LANTERNWICK -> Orchard 1-2 -> Briarwood 3-4 -> Quarry 5-6 -> Abbey 7-8 -> Crown 9-10\nSEARCH suspicious places. Discovered routes:\n" + state.discoveredRoomIds.map((id) => { const r = getRoom(id); return `${id === state.roomId ? "@" : "."} ${r.name}: ${Object.entries({ ...r.exits, ...(state.searchedRoomIds.includes(id) ? r.hiddenExits : {}) }).map(([d, to]) => `${d}=${state.discoveredRoomIds.includes(to) ? getRoom(to).name : "???"}`).join(" | ")}`; }).join("\n"))] };
+    case "shop":
+    case "buy":
+    case "sell":
+    case "use":
+    case "unequip":
+      return manageInventory(state, verb, argument);
     case "go":
     case "move":
       return move(state, normalizeTarget(argument));
@@ -1240,7 +1273,7 @@ export function executeCommand(
     }
     case "stats": {
       const discipline = state.discipline ? disciplines[state.discipline].name : "Unsworn";
-      const nextLevel = state.level >= firstLightWorld.levelRange.max ? "MAX" : state.level * 100;
+      const nextLevel = state.level >= firstLightWorld.levelRange.max ? "MAX" : XP_THRESHOLDS[state.level];
       return {
         state,
         messages: [
@@ -1250,7 +1283,7 @@ export function executeCommand(
           ),
           message(
             "system",
-            `Might ${state.attributes.might} · Agility ${state.attributes.agility} · Intellect ${state.attributes.intellect} · Vitality ${state.attributes.vitality} · ${attacksPerVolley(state.attributes.agility)} hit(s) every ${(playerAttackIntervalMs(state.attributes.agility) / 1000).toFixed(2)}s · Crit ${criticalChance(state.attributes.agility)}% · Deaths ${state.deathCount}`,
+            `Might ${effectiveAttributes(state).might} · Agility ${effectiveAttributes(state).agility} · Intellect ${effectiveAttributes(state).intellect} · Vitality ${effectiveAttributes(state).vitality} · ${attacksPerVolley(effectiveAttributes(state).agility)} hit(s) every ${(playerAttackIntervalMs(effectiveAttributes(state).agility) / 1000).toFixed(2)}s · Crit ${criticalChance(effectiveAttributes(state).agility)}% · Deaths ${state.deathCount} | Gold ${state.gold}\nBase: M ${state.attributes.might} A ${state.attributes.agility} I ${state.attributes.intellect} V ${state.attributes.vitality}. Values above include gear. Might: weapon damage; Agility: speed, volleys, crits; Intellect: spells; Vitality: starting HP. Each level: +6 HP, +4 MP for mana users, +1 physical damage.`,
           ),
         ],
       };
@@ -1264,7 +1297,7 @@ export function executeCommand(
           message(
             "status",
             state.inventory.length > 0
-              ? `You carry: ${state.inventory.map(itemName).join(", ")}.`
+              ? `GOLD ${state.gold} | PACK\n${[...new Set(state.inventory)].map((id) => `${Object.values(state.equipment).includes(id) ? "[E]" : "[ ]"} ${itemName(id)} x${state.inventory.filter((entry) => entry === id).length}`).join("\n")}\nEQUIP <item> | UNEQUIP <slot> | USE <item> | SELL <item>`
               : "You carry nothing.",
           ),
         ],
@@ -1304,4 +1337,41 @@ export function executeCommand(
         ],
       };
   }
+}
+
+function manageInventory(state: CharacterState, verb: string, target: string): CommandResult {
+  const reply = (text: string, error = false): CommandResult => ({ state, messages: [message(error ? "error" : "status", text)] });
+  if (state.combat) return reply("Finish the fight before managing supplies.", true);
+  if (verb === "unequip") {
+    const slot = target.toLowerCase() as keyof typeof state.equipment;
+    if (!["weapon", "armor", "focus"].includes(slot) || !state.equipment[slot]) return reply("UNEQUIP weapon, armor, or focus (an occupied slot).", true);
+    delete state.equipment[slot];
+    return reply(`You unequip your ${slot}. The item remains in your pack.`);
+  }
+  const shop = getRoom(state.roomId).shop;
+  if (["shop", "buy", "sell"].includes(verb) && !shop.length) return reply("No shop here. Visit Market Lane or the apothecary in Lanternwick.", true);
+  if (verb === "shop") return reply(`GOLD ${state.gold} | BUY <item> / SELL <item>\n` + shop.map((id) => `${itemName(id)} - ${getItem(id)?.price} gold`).join("\n"));
+  if (verb === "buy") {
+    const item = shop.map(getItem).find((item) => item && [item.id, item.name].includes(target.toLowerCase()));
+    if (!item?.price) return reply("That item is not stocked. Type SHOP.", true);
+    if (state.gold < item.price) return reply(`You need ${item.price} gold; you have ${state.gold}.`, true);
+    state.gold -= item.price;
+    state.inventory.push(item.id);
+    return reply(`Bought ${item.name}. Gold: ${state.gold}.`);
+  }
+  const item = findCarriedItem(state, target);
+  if (!item) return reply("You do not carry that item.", true);
+  if (verb === "sell") {
+    if (Object.values(state.equipment).includes(item.id)) return reply("Unequip that item before selling it.", true);
+    const price = Math.max(1, Math.floor((item.price ?? 6) / 3));
+    state.inventory.splice(state.inventory.indexOf(item.id), 1);
+    state.gold += price;
+    return reply(`Sold ${item.name} for ${price} gold. Gold: ${state.gold}.`);
+  }
+  if (!item.heal && !item.manaRestore) return reply("That item is not consumable.", true);
+  if ((!item.heal || state.health === state.maxHealth) && (!item.manaRestore || state.mana === state.maxMana)) return reply("Your resources are already full; the draught is saved.", true);
+  state.health = Math.min(state.maxHealth, state.health + (item.heal ?? 0));
+  state.mana = Math.min(state.maxMana, state.mana + (item.manaRestore ?? 0));
+  state.inventory.splice(state.inventory.indexOf(item.id), 1);
+  return reply(`Used ${item.name}. HP ${state.health}/${state.maxHealth}; MP ${state.mana}/${state.maxMana}.`);
 }

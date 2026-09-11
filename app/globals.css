@@ -247,3 +247,13 @@ input {
     animation: none;
   }
 }
+
+.intro-art {
+  color: var(--amber, #e9ba65);
+  font: inherit;
+  font-size: clamp(8px, 1.8vw, 15px);
+  line-height: 1.2;
+  white-space: pre;
+  overflow-x: auto;
+  text-shadow: 0 0 12px #a9683433;
+}
