@@ -63,6 +63,7 @@ const roomSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
   description: z.string().min(1),
+  mapPosition: z.object({ x: z.number().int(), y: z.number().int(), z: z.number().int() }).optional(),
   area: z.string().default("Lanternwick"),
   recommendedLevel: z.number().int().positive().default(1),
   hiddenExits: z.partialRecord(directionSchema, z.string().min(1)).default({}),

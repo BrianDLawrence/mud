@@ -37,7 +37,8 @@
       "id": "orchard-lamp",
       "title": "The Drowned Orchard Lamp",
       "aliases": [
-        "orchard"
+        "graftmother",
+        "orchard lamp"
       ],
       "giverNpcId": "keeper-vale",
       "summary": "Find and defeat The Graftmother in Drowned Orchard. Examine signs and SEARCH at the last landmark.",
@@ -179,7 +180,12 @@
             "crown-lamp"
           ]
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      }
     },
     {
       "id": "rusted-gate",
@@ -201,7 +207,12 @@
         }
       ],
       "creatures": [],
-      "npcs": []
+      "npcs": [],
+      "mapPosition": {
+        "x": 0,
+        "y": 1,
+        "z": 0
+      }
     },
     {
       "id": "market-lane",
@@ -239,7 +250,12 @@
         "trail-blade-5",
         "trail-focus-5",
         "trail-armor-5"
-      ]
+      ],
+      "mapPosition": {
+        "x": 1,
+        "y": 0,
+        "z": 0
+      }
     },
     {
       "id": "drowned-orchard",
@@ -279,7 +295,13 @@
           ]
         }
       ],
-      "npcs": []
+      "npcs": [],
+      "mapPosition": {
+        "x": 0,
+        "y": 2,
+        "z": 0
+      },
+      "area": "Drowned Orchard"
     },
     {
       "id": "root-cellar",
@@ -317,7 +339,13 @@
           "loot": []
         }
       ],
-      "npcs": []
+      "npcs": [],
+      "mapPosition": {
+        "x": 0,
+        "y": 2,
+        "z": -1
+      },
+      "area": "Drowned Orchard"
     },
     {
       "id": "apothecary",
@@ -330,7 +358,12 @@
       "shop": [
         "healing-draught",
         "mana-draught"
-      ]
+      ],
+      "mapPosition": {
+        "x": 2,
+        "y": 0,
+        "z": 0
+      }
     },
     {
       "id": "town-square",
@@ -339,6 +372,11 @@
       "exits": {
         "south": "apothecary",
         "west": "rusted-gate"
+      },
+      "mapPosition": {
+        "x": 2,
+        "y": 1,
+        "z": 0
       }
     },
     {
@@ -382,7 +420,12 @@
             "healing-draught"
           ]
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 0,
+        "y": 3,
+        "z": 0
+      }
     },
     {
       "id": "orchard-1",
@@ -423,7 +466,12 @@
           "respawnMs": 180000,
           "loot": []
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 0,
+        "y": 4,
+        "z": 0
+      }
     },
     {
       "id": "orchard-2",
@@ -464,7 +512,12 @@
           "respawnMs": 180000,
           "loot": []
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 0,
+        "y": 5,
+        "z": 0
+      }
     },
     {
       "id": "orchard-3",
@@ -507,7 +560,12 @@
             "healing-draught"
           ]
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 0,
+        "y": 6,
+        "z": 0
+      }
     },
     {
       "id": "orchard-4",
@@ -531,7 +589,12 @@
           ],
           "description": "A pilgrim carved: \"Beyond the last landmark, SEARCH. The old ways lie beneath.\""
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 0,
+        "y": 7,
+        "z": 0
+      }
     },
     {
       "id": "orchard-5",
@@ -571,7 +634,12 @@
           "respawnMs": 180000,
           "loot": []
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 0,
+        "y": 8,
+        "z": 0
+      }
     },
     {
       "id": "orchard-6",
@@ -612,7 +680,12 @@
             "healing-draught"
           ]
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 1,
+        "y": 3,
+        "z": 0
+      }
     },
     {
       "id": "orchard-7",
@@ -651,7 +724,12 @@
           "respawnMs": 180000,
           "loot": []
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 1,
+        "y": 4,
+        "z": 0
+      }
     },
     {
       "id": "orchard-8",
@@ -690,7 +768,12 @@
           "respawnMs": 180000,
           "loot": []
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 1,
+        "y": 5,
+        "z": 0
+      }
     },
     {
       "id": "orchard-9",
@@ -734,7 +817,12 @@
             "healing-draught"
           ]
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 1,
+        "y": 6,
+        "z": 0
+      }
     },
     {
       "id": "orchard-boss",
@@ -765,7 +853,12 @@
             "trail-armor-1"
           ]
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 1,
+        "y": 6,
+        "z": -1
+      }
     },
     {
       "id": "briar-0",
@@ -808,7 +901,12 @@
             "healing-draught"
           ]
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 0,
+        "y": 9,
+        "z": 0
+      }
     },
     {
       "id": "briar-1",
@@ -849,7 +947,12 @@
           "respawnMs": 180000,
           "loot": []
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 0,
+        "y": 10,
+        "z": 0
+      }
     },
     {
       "id": "briar-2",
@@ -890,7 +993,12 @@
           "respawnMs": 180000,
           "loot": []
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 0,
+        "y": 11,
+        "z": 0
+      }
     },
     {
       "id": "briar-3",
@@ -933,7 +1041,12 @@
             "healing-draught"
           ]
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 0,
+        "y": 12,
+        "z": 0
+      }
     },
     {
       "id": "briar-4",
@@ -957,7 +1070,12 @@
           ],
           "description": "A pilgrim carved: \"Beyond the last landmark, SEARCH. The old ways lie beneath.\""
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 0,
+        "y": 13,
+        "z": 0
+      }
     },
     {
       "id": "briar-5",
@@ -997,7 +1115,12 @@
           "respawnMs": 180000,
           "loot": []
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 0,
+        "y": 14,
+        "z": 0
+      }
     },
     {
       "id": "briar-6",
@@ -1038,7 +1161,12 @@
             "healing-draught"
           ]
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 1,
+        "y": 9,
+        "z": 0
+      }
     },
     {
       "id": "briar-7",
@@ -1077,7 +1205,12 @@
           "respawnMs": 180000,
           "loot": []
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 1,
+        "y": 10,
+        "z": 0
+      }
     },
     {
       "id": "briar-8",
@@ -1116,7 +1249,12 @@
           "respawnMs": 180000,
           "loot": []
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 1,
+        "y": 11,
+        "z": 0
+      }
     },
     {
       "id": "briar-9",
@@ -1160,7 +1298,12 @@
             "healing-draught"
           ]
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 1,
+        "y": 12,
+        "z": 0
+      }
     },
     {
       "id": "briar-boss",
@@ -1191,7 +1334,12 @@
             "trail-armor-2"
           ]
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 1,
+        "y": 12,
+        "z": -1
+      }
     },
     {
       "id": "quarry-0",
@@ -1234,7 +1382,12 @@
             "healing-draught"
           ]
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 0,
+        "y": 15,
+        "z": 0
+      }
     },
     {
       "id": "quarry-1",
@@ -1275,7 +1428,12 @@
           "respawnMs": 180000,
           "loot": []
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 0,
+        "y": 16,
+        "z": 0
+      }
     },
     {
       "id": "quarry-2",
@@ -1316,7 +1474,12 @@
           "respawnMs": 180000,
           "loot": []
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 0,
+        "y": 17,
+        "z": 0
+      }
     },
     {
       "id": "quarry-3",
@@ -1359,7 +1522,12 @@
             "healing-draught"
           ]
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 0,
+        "y": 18,
+        "z": 0
+      }
     },
     {
       "id": "quarry-4",
@@ -1383,7 +1551,12 @@
           ],
           "description": "A pilgrim carved: \"Beyond the last landmark, SEARCH. The old ways lie beneath.\""
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 0,
+        "y": 19,
+        "z": 0
+      }
     },
     {
       "id": "quarry-5",
@@ -1423,7 +1596,12 @@
           "respawnMs": 180000,
           "loot": []
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 0,
+        "y": 20,
+        "z": 0
+      }
     },
     {
       "id": "quarry-6",
@@ -1464,7 +1642,12 @@
             "healing-draught"
           ]
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 1,
+        "y": 15,
+        "z": 0
+      }
     },
     {
       "id": "quarry-7",
@@ -1503,7 +1686,12 @@
           "respawnMs": 180000,
           "loot": []
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 1,
+        "y": 16,
+        "z": 0
+      }
     },
     {
       "id": "quarry-8",
@@ -1542,7 +1730,12 @@
           "respawnMs": 180000,
           "loot": []
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 1,
+        "y": 17,
+        "z": 0
+      }
     },
     {
       "id": "quarry-9",
@@ -1586,7 +1779,12 @@
             "healing-draught"
           ]
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 1,
+        "y": 18,
+        "z": 0
+      }
     },
     {
       "id": "quarry-boss",
@@ -1617,7 +1815,12 @@
             "trail-armor-3"
           ]
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 1,
+        "y": 18,
+        "z": -1
+      }
     },
     {
       "id": "abbey-0",
@@ -1660,7 +1863,12 @@
             "healing-draught"
           ]
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 0,
+        "y": 21,
+        "z": 0
+      }
     },
     {
       "id": "abbey-1",
@@ -1701,7 +1909,12 @@
           "respawnMs": 180000,
           "loot": []
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 0,
+        "y": 22,
+        "z": 0
+      }
     },
     {
       "id": "abbey-2",
@@ -1742,7 +1955,12 @@
           "respawnMs": 180000,
           "loot": []
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 0,
+        "y": 23,
+        "z": 0
+      }
     },
     {
       "id": "abbey-3",
@@ -1785,7 +2003,12 @@
             "healing-draught"
           ]
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 0,
+        "y": 24,
+        "z": 0
+      }
     },
     {
       "id": "abbey-4",
@@ -1809,7 +2032,12 @@
           ],
           "description": "A pilgrim carved: \"Beyond the last landmark, SEARCH. The old ways lie beneath.\""
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 0,
+        "y": 25,
+        "z": 0
+      }
     },
     {
       "id": "abbey-5",
@@ -1849,7 +2077,12 @@
           "respawnMs": 180000,
           "loot": []
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 0,
+        "y": 26,
+        "z": 0
+      }
     },
     {
       "id": "abbey-6",
@@ -1890,7 +2123,12 @@
             "healing-draught"
           ]
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 1,
+        "y": 21,
+        "z": 0
+      }
     },
     {
       "id": "abbey-7",
@@ -1929,7 +2167,12 @@
           "respawnMs": 180000,
           "loot": []
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 1,
+        "y": 22,
+        "z": 0
+      }
     },
     {
       "id": "abbey-8",
@@ -1968,7 +2211,12 @@
           "respawnMs": 180000,
           "loot": []
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 1,
+        "y": 23,
+        "z": 0
+      }
     },
     {
       "id": "abbey-9",
@@ -2012,7 +2260,12 @@
             "healing-draught"
           ]
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 1,
+        "y": 24,
+        "z": 0
+      }
     },
     {
       "id": "abbey-boss",
@@ -2043,7 +2296,12 @@
             "trail-armor-4"
           ]
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 1,
+        "y": 24,
+        "z": -1
+      }
     },
     {
       "id": "crown-0",
@@ -2086,7 +2344,12 @@
             "healing-draught"
           ]
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 0,
+        "y": 27,
+        "z": 0
+      }
     },
     {
       "id": "crown-1",
@@ -2127,7 +2390,12 @@
           "respawnMs": 180000,
           "loot": []
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 0,
+        "y": 28,
+        "z": 0
+      }
     },
     {
       "id": "crown-2",
@@ -2168,7 +2436,12 @@
           "respawnMs": 180000,
           "loot": []
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 0,
+        "y": 29,
+        "z": 0
+      }
     },
     {
       "id": "crown-3",
@@ -2211,7 +2484,12 @@
             "healing-draught"
           ]
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 0,
+        "y": 30,
+        "z": 0
+      }
     },
     {
       "id": "crown-4",
@@ -2235,7 +2513,12 @@
           ],
           "description": "A pilgrim carved: \"Beyond the last landmark, SEARCH. The old ways lie beneath.\""
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 0,
+        "y": 31,
+        "z": 0
+      }
     },
     {
       "id": "crown-5",
@@ -2274,7 +2557,12 @@
           "respawnMs": 180000,
           "loot": []
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 0,
+        "y": 32,
+        "z": 0
+      }
     },
     {
       "id": "crown-6",
@@ -2315,7 +2603,12 @@
             "healing-draught"
           ]
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 1,
+        "y": 27,
+        "z": 0
+      }
     },
     {
       "id": "crown-7",
@@ -2354,7 +2647,12 @@
           "respawnMs": 180000,
           "loot": []
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 1,
+        "y": 28,
+        "z": 0
+      }
     },
     {
       "id": "crown-8",
@@ -2393,7 +2691,12 @@
           "respawnMs": 180000,
           "loot": []
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 1,
+        "y": 29,
+        "z": 0
+      }
     },
     {
       "id": "crown-9",
@@ -2437,7 +2740,12 @@
             "healing-draught"
           ]
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 1,
+        "y": 30,
+        "z": 0
+      }
     },
     {
       "id": "crown-boss",
@@ -2468,7 +2776,12 @@
             "trail-armor-5"
           ]
         }
-      ]
+      ],
+      "mapPosition": {
+        "x": 1,
+        "y": 30,
+        "z": -1
+      }
     }
   ]
 }

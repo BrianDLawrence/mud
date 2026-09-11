@@ -257,3 +257,11 @@ input {
   overflow-x: auto;
   text-shadow: 0 0 12px #a9683433;
 }
+
+.message.tone-map {
+  color: var(--amber);
+  max-width: 100%;
+  white-space: pre;
+  overflow-x: auto;
+  line-height: 1.25;
+}

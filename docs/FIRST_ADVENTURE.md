@@ -10,7 +10,7 @@ The first adventure now supports solo levels 1–10 across 63 rooms. Lanternwick
 | Sunken Abbey | 7–8 | The Bellless Prior |
 | Hollow Crown | 9–10 | The Hollow Regent |
 
-Each region has a six-room northbound spine, four optional eastern branches, and a concealed guardian room. EXAMINE signs supplies clues; SEARCH reveals hidden exits permanently for that character. MAP records visited rooms and their routes, with unknown destinations marked ???. The original Root Cellar encounter is still available.
+Each region has a six-room northbound spine, four optional eastern branches, and a concealed guardian room. EXAMINE signs supplies clues; SEARCH reveals hidden exits permanently for that character. MAP draws a north-up ASCII chart of the current region and floor, with numbered rooms, connecting paths, a compass, and a room key. @ marks your position; ? marks unexplored destinations. Stairs appear in the key only after their route is known. Names and exits of unvisited rooms remain hidden. The chart changes pages as you travel between regions. The original Root Cellar encounter is still available.
 
 ## Getting started
 
@@ -45,3 +45,21 @@ The target is at least two hours of exploration, fighting, recovery, side paths 
 Human playtesting is still needed to measure discovery time and tune encounter density, XP and class difficulty. Encounters and respawns are per-character; room chat/presence remains shared. No shared boss locking or party loot distribution is introduced.
 
 The entry screen uses original ASCII ornament and a colored monospace title inspired by BBS door-game presentation. It uses text and CSS colors, with no image assets or copied LORD artwork.
+
+## Command shortcuts
+
+Full commands remain supported. You can abbreviate commands and use unique word prefixes for visible targets or available items:
+
+| Input | Meaning |
+|---|---|
+| `a c` / `a m` | Attack the marsh crawler when it is the unique matching creature |
+| `a` | Attack the sole visible creature; show choices if several are present |
+| `b blade 1` | Buy trail blade 1 at the smith |
+| `t k` | Talk to Keeper Vale |
+| `x trac` | Examine tracks |
+| `equip blade 1` | Equip a carried trail blade 1 |
+| `uneq w` | Unequip the weapon slot |
+| `use heal` | Use a carried healing draught |
+| `c e m` | Cast ember at the marsh crawler |
+
+Exact names and IDs take priority over partial matches. Ambiguous targets list choices without acting or spending gold; for example, `b blade` asks for a tier. Duplicate copies of the same carried item count as one choice. Matching is limited to the current room, shop stock, or inventory as appropriate. Existing direction shortcuts, social messages, and full commands keep their meaning. HELP lists common shortcuts.

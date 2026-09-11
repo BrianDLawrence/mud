@@ -1,4 +1,5 @@
 export const messageTones = [
+  "map",
   "system",
   "location",
   "narrative",
