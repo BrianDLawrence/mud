@@ -5,6 +5,7 @@ import { worldPackSchema, type Room } from "@/lib/game/world-schema";
 export const firstLightWorld = worldPackSchema.parse(rawWorld);
 
 for (const itemId of [
+  ...firstLightWorld.rooms.flatMap((room) => room.shop),
   ...firstLightWorld.rooms.flatMap((room) =>
     room.creatures.flatMap((creature) => creature.loot),
   ),

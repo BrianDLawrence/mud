@@ -1,4 +1,5 @@
 import type {
+  CharacterAttributes,
   ArmorWeight,
   CharacterEquipment,
   CharacterState,
@@ -11,13 +12,24 @@ export interface ItemDefinition {
   name: string;
   description: string;
   slot?: EquipmentSlot;
+  price?: number;
+  bonuses?: Partial<CharacterAttributes>;
+  heal?: number;
+  manaRestore?: number;
   power?: number;
   armor?: number;
   armorWeight?: ArmorWeight;
   discipline?: DisciplineId;
 }
 
-const itemDefinitions = [
+const itemDefinitions: ItemDefinition[] = [
+  { id: "healing-draught", name: "healing draught", description: "USE healing draught: restores 40 HP.", price: 12, heal: 40 },
+  { id: "mana-draught", name: "mana draught", description: "USE mana draught: restores 24 MP.", price: 12, manaRestore: 24 },
+  ...[1, 2, 3, 4, 5].flatMap((tier): ItemDefinition[] => [
+    { id: `trail-blade-${tier}`, name: `trail blade ${tier}`, description: `Tier ${tier} balanced steel. +${tier} Might.`, slot: "weapon", power: 3 + tier * 2, bonuses: { might: tier }, price: tier * tier * 30 },
+    { id: `trail-focus-${tier}`, name: `trail focus ${tier}`, description: `Tier ${tier} carved amber. +${tier} Intellect.`, slot: "focus", power: 3 + tier * 2, bonuses: { intellect: tier }, price: tier * tier * 30 },
+    { id: `trail-armor-${tier}`, name: `trail armor ${tier}`, description: `Tier ${tier} supple leather. +${tier} Agility.`, slot: "armor", armorWeight: "light", armor: 2 + tier * 2, bonuses: { agility: tier }, price: tier * tier * 25 },
+  ]),
   {
     id: "traveler-cloak",
     name: "worn traveler's cloak",
@@ -177,4 +189,14 @@ export function equipmentPower(
 ): number {
   const itemId = equipment[slot];
   return itemId ? getItem(itemId)?.power ?? 0 : 0;
+}
+
+export function effectiveAttributes(state: CharacterState): CharacterAttributes {
+  const result = { ...state.attributes };
+  for (const id of Object.values(state.equipment)) {
+    for (const [key, value] of Object.entries(getItem(id)?.bonuses ?? {})) {
+      result[key as keyof CharacterAttributes] += value;
+    }
+  }
+  return result;
 }

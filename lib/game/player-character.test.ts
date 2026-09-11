@@ -6,6 +6,10 @@ import type { StoredCharacter } from "@/lib/game/types";
 const character: StoredCharacter = {
   name: "Mira",
   state: {
+    gold: 15,
+    respawnAt: {},
+    discoveredRoomIds: ["lantern-inn"],
+    searchedRoomIds: [],
     roomId: "lantern-inn",
     discipline: "vanguard",
     disciplineRevision: 2,

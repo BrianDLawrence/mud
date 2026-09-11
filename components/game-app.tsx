@@ -1,4 +1,6 @@
 "use client";
+import { INTRO_ART } from "@/lib/game/intro";
+
 
 import {
   DiscordSDK,
@@ -56,7 +58,10 @@ function TerminalFrame({
         <span>NEXTMUD</span>
         <span className="connection-state">{connectionState}</span>
       </header>
-      <section className="transcript onboarding-transcript">{children}</section>
+      <section className="transcript onboarding-transcript">
+        <pre className="intro-art" aria-label="NextMUD: First Light. A lantern against the long night. Lanternwick.">{INTRO_ART}</pre>
+        {children}
+      </section>
       <footer className="terminal-footer">{footer}</footer>
     </main>
   );

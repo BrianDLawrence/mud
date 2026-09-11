@@ -9,6 +9,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { INTRO_ART } from "@/lib/game/intro";
 import type {
   CharacterProfile,
   CharacterSummary,
@@ -30,7 +31,7 @@ export function GameTerminal({
   onSignOut: () => Promise<void>;
 }>) {
   const [messages, setMessages] = useState<GameMessage[]>(() => [
-    { tone: "system", text: "NEXTMUD // DEVELOPMENT REALM" },
+    { tone: "location", text: INTRO_ART },
     { tone: "narrative", text: `Welcome, ${characterProfile.name}. The realm remembers you.` },
     { tone: "system", text: "Type HELP for commands. Type CLEAR to clear this terminal." },
   ]);
