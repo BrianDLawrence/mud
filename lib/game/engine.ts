@@ -1,5 +1,7 @@
+import { renderInventory, renderStats } from "@/lib/game/ansi-views";
+import { INTRO_ART } from "@/lib/game/intro";
 import { resolveCommand } from "@/lib/game/command-resolution";
-import { renderMap } from "@/lib/game/map";
+import { renderAnsiMap } from "@/lib/game/map";
 import { normalizeCharacterState } from "@/lib/game/character-state";
 import { disciplines } from "@/lib/game/disciplines";
 import {
@@ -26,7 +28,7 @@ const directionAliases: Record<string, string> = {
 };
 
 const helpText = [
-  "look",
+  "look", "title",
   "examine <thing>",
   "north/south/east/west/up/down",
   "attack <creature>",
@@ -1129,8 +1131,10 @@ export function executeCommand(
       state.searchedRoomIds = [...new Set([...state.searchedRoomIds, room.id])];
       return { state, messages: [message("narrative", Object.keys(room.hiddenExits).length ? `Behind the weathered stone you discover a passage: ${Object.keys(room.hiddenExits).join(", ")}.` : "You search carefully. No concealed passages here."), ...describeRoom(state)] };
     }
+    case "title":
+      return { state, messages: [message("art", INTRO_ART)] };
     case "map":
-      return { state, messages: [message("map", renderMap(state))] };
+      return { state, messages: [{ tone: "map", format: "ansi", label: "Area map", text: renderAnsiMap(state) }] };
     case "shop":
     case "buy":
     case "sell":
@@ -1275,36 +1279,17 @@ export function executeCommand(
       };
     }
     case "stats": {
-      const discipline = state.discipline ? disciplines[state.discipline].name : "Unsworn";
-      const nextLevel = state.level >= firstLightWorld.levelRange.max ? "MAX" : XP_THRESHOLDS[state.level];
-      return {
-        state,
-        messages: [
-          message(
-            "status",
-            `${discipline} · Level ${state.level} · XP ${state.experience}/${nextLevel} · Health ${state.health}/${state.maxHealth}${state.maxMana > 0 ? ` · Mana ${state.mana}/${state.maxMana}` : ""}`,
-          ),
-          message(
-            "system",
-            `Might ${effectiveAttributes(state).might} · Agility ${effectiveAttributes(state).agility} · Intellect ${effectiveAttributes(state).intellect} · Vitality ${effectiveAttributes(state).vitality} · ${attacksPerVolley(effectiveAttributes(state).agility)} hit(s) every ${(playerAttackIntervalMs(effectiveAttributes(state).agility) / 1000).toFixed(2)}s · Crit ${criticalChance(effectiveAttributes(state).agility)}% · Deaths ${state.deathCount} | Gold ${state.gold}\nBase: M ${state.attributes.might} A ${state.attributes.agility} I ${state.attributes.intellect} V ${state.attributes.vitality}. Values above include gear. Might: weapon damage; Agility: speed, volleys, crits; Intellect: spells; Vitality: starting HP. Each level: +6 HP, +4 MP for mana users, +1 physical damage.`,
-          ),
-        ],
-      };
+      const agility = effectiveAttributes(state).agility;
+      return { state, messages: [{ tone: "status", format: "ansi", label: "Character stats", text: renderStats(state, {
+        hits: attacksPerVolley(agility), intervalMs: playerAttackIntervalMs(agility), critical: criticalChance(agility),
+        levelFloor: XP_THRESHOLDS[state.level - 1] ?? 0,
+        nextLevel: XP_THRESHOLDS[state.level],
+      }) }] };
     }
     case "inventory":
     case "inv":
     case "i":
-      return {
-        state,
-        messages: [
-          message(
-            "status",
-            state.inventory.length > 0
-              ? `GOLD ${state.gold} | PACK\n${[...new Set(state.inventory)].map((id) => `${Object.values(state.equipment).includes(id) ? "[E]" : "[ ]"} ${itemName(id)} x${state.inventory.filter((entry) => entry === id).length}`).join("\n")}\nEQUIP <item> | UNEQUIP <slot> | USE <item> | SELL <item>`
-              : "You carry nothing.",
-          ),
-        ],
-      };
+      return { state, messages: [{ tone: "status", format: "ansi", label: "Inventory", text: renderInventory(state) }] };
     case "say":
       return {
         state,

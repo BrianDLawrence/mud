@@ -248,15 +248,7 @@ input {
   }
 }
 
-.intro-art {
-  color: var(--amber, #e9ba65);
-  font: inherit;
-  font-size: clamp(8px, 1.8vw, 15px);
-  line-height: 1.2;
-  white-space: pre;
-  overflow-x: auto;
-  text-shadow: 0 0 12px #a9683433;
-}
+
 
 .message.tone-map {
   color: var(--amber);
@@ -264,4 +256,33 @@ input {
   white-space: pre;
   overflow-x: auto;
   line-height: 1.25;
+}
+
+.ansi-art-frame {
+  container-type: inline-size;
+  margin: 0 0 1.2rem;
+  background: #000;
+  overflow-x: auto;
+}
+
+.ansi-art {
+  width: max-content;
+  margin: 0 auto;
+  padding: 0;
+  color: #aaa;
+  background: #000;
+  font-family: "Consolas", "Liberation Mono", "Menlo", monospace;
+  font-size: clamp(6px, 2.25cqi, 16px);
+  font-weight: 400;
+  font-variant-ligatures: none;
+  line-height: 1;
+  letter-spacing: 0;
+  white-space: pre;
+  user-select: text;
+}
+
+.ansi-panel-frame .ansi-art {
+  font-size: clamp(10px, calc(100cqi / var(--ansi-columns) / 0.61), 16px);
+  line-height: 1.2;
+  margin-inline: 0;
 }

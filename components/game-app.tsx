@@ -1,5 +1,6 @@
 "use client";
-import { INTRO_ART } from "@/lib/game/intro";
+import { AnsiArt } from "@/components/ansi-art";
+import { INTRO_ART, INTRO_DESCRIPTION } from "@/lib/game/intro";
 
 
 import {
@@ -59,7 +60,7 @@ function TerminalFrame({
         <span className="connection-state">{connectionState}</span>
       </header>
       <section className="transcript onboarding-transcript">
-        <pre className="intro-art" aria-label="NextMUD: First Light. A lantern against the long night. Lanternwick.">{INTRO_ART}</pre>
+        <AnsiArt text={INTRO_ART} label={INTRO_DESCRIPTION} />
         {children}
       </section>
       <footer className="terminal-footer">{footer}</footer>

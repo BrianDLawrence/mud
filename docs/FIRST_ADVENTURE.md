@@ -20,7 +20,7 @@ Lanternwick has a smith on Market Lane (east of the inn) and an apothecary east 
 
 ## Equipment and supplies
 
-INVENTORY groups stacks and marks worn items [E]. EQUIPMENT shows a text figure, occupied weapon/armor/focus slots, power and armor. EQUIP <item> replaces a slot without deleting the old item; UNEQUIP <slot> returns it to the pack. Armor training and discipline restrictions still apply.
+INVENTORY uses an ANSI panel with equipped slots, gear bonuses, grouped backpack stacks, gold, and [E] markers. EQUIPMENT shows a text figure, occupied weapon/armor/focus slots, power and armor. EQUIP <item> replaces a slot without deleting the old item; UNEQUIP <slot> returns it to the pack. Armor training and discipline restrictions still apply.
 
 Five tiers of trail equipment provide increasing weapon/focus power and armor. Blades add Might, foci add Intellect, and armor adds Agility. Guardian loot supplies all three choices so every discipline can progress. Bonuses are derived from equipped items, never permanently added to base attributes, preventing equip/unequip stacking.
 
@@ -28,7 +28,7 @@ USE healing draught restores 40 HP; USE mana draught restores 24 MP. Supplies an
 
 ## Stats and progression
 
-STATS shows base attributes and totals including gear:
+STATS uses an ANSI panel with HP/MP/XP bars, exact resource values, and separate base/gear/total columns:
 
 - Might contributes to physical damage. Each level also adds one physical damage.
 - Agility controls attack interval (minimum 1.4 seconds), attacks per volley (1/2/3 at agility 0/4/7), and critical chance (capped at 40%).
@@ -44,7 +44,7 @@ The target is at least two hours of exploration, fighting, recovery, side paths 
 
 Human playtesting is still needed to measure discovery time and tune encounter density, XP and class difficulty. Encounters and respawns are per-character; room chat/presence remains shared. No shared boss locking or party loot distribution is introduced.
 
-The entry screen uses original ASCII ornament and a colored monospace title inspired by BBS door-game presentation. It uses text and CSS colors, with no image assets or copied LORD artwork.
+The entry screen uses original ANSI artwork with a classic 16-color palette, foreground/background colors, and shaded block characters. The scene shows a golden lantern before a moonlit castle and forest. Type TITLE to replay it. It remains entirely text-based, with no image assets or copied LORD artwork. See [ANSI artwork](ANSI_ART.md) for supported controls and legacy-file compatibility.
 
 ## Command shortcuts
 
