@@ -1,3 +1,4 @@
+import { ansiPanel, tint } from "@/lib/game/ansi-views";
 import type { CharacterState } from "@/lib/game/types";
 import { firstLightWorld, getRoom } from "@/lib/game/world";
 import type { Room } from "@/lib/game/world-schema";
@@ -62,4 +63,27 @@ export function renderMap(state: CharacterState): string {
   const lines = [title, "", "       N", "       |", "   W --+-- E", "       |", "       S", "", ...grid.map((line) => line.join("").trimEnd()), "", "@ You   ? Unexplored   -- | Paths", "", ...labels, ...(stairs.length ? ["", ...stairs] : []), "", "MAP charts this area. Travel to turn the page."];
   const pageWidth = Math.max(...lines.map((line) => line.length));
   return ["+" + "-".repeat(pageWidth + 2) + "+", ...lines.map((line) => `| ${line.padEnd(pageWidth)} |`), "+" + "-".repeat(pageWidth + 2) + "+"].join("\n");
+}
+
+/** ANSI presentation preserves the discovery rules of the plain map. */
+export function renderAnsiMap(state: CharacterState): string {
+  const original = renderMap(state);
+  if (!original.startsWith("+")) return ansiPanel("EXPLORER'S MAP", [original]);
+  const rows = original.split("\n").slice(1, -1).map((line) => line.slice(2, -2).trimEnd());
+  const colored = rows.map((line, index) => {
+    if (index === 0) return tint(line, 93);
+    // Only replace path glyphs in the chart, never in names or directions.
+    if (/^[\s\d@?\[\]|+\-]+$/.test(line)) {
+      return line.split(/(\[[^\]]+\])/).map((part) => {
+        if (part.startsWith("[")) return tint(part, part.includes("@") ? 30 : part.includes("?") ? 37 : 96, part.includes("@") ? 102 : 40);
+        return tint(part.replace(/-/g, "─").replace(/\|/g, "│").replace(/\+/g, "┼"), 36);
+      }).join("");
+    }
+    if (line.trimStart().startsWith("@") && !line.includes("Unexplored")) return tint(line, 92);
+    if (line.includes("UP") || line.includes("DOWN")) return tint(line, 93);
+    if (line.includes("Unexplored")) return tint("@ You   ? Unexplored   ─ │ Paths", 37);
+    if (line.includes("MAP charts")) return tint(line, 96);
+    return tint(line, 37);
+  });
+  return ansiPanel("EXPLORER'S MAP", colored, 48);
 }

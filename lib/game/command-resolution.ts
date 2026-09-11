@@ -18,7 +18,7 @@ const aliases: Record<string, string> = {
 const commands = [
   "attack", "kill", "buy", "sell", "use", "equip", "equipment", "unequip",
   "talk", "accept", "examine", "inspect", "cast", "smite", "backstab",
-  "look", "map", "search", "shop", "inventory", "quests", "abilities",
+  "look", "title", "map", "search", "shop", "inventory", "quests", "abilities",
   "resistance", "rest", "stats", "stop", "guard", "aim", "sneak", "help",
   "go", "move",
 ];

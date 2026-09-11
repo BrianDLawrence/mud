@@ -1,5 +1,6 @@
 export const messageTones = [
   "map",
+  "art",
   "system",
   "location",
   "narrative",
@@ -53,6 +54,8 @@ export interface QuestProgress {
 }
 
 export interface GameMessage {
+  format?: "ansi";
+  label?: string;
   tone: MessageTone;
   text: string;
 }

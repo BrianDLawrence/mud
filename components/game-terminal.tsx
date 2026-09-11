@@ -9,7 +9,8 @@ import {
   useRef,
   useState,
 } from "react";
-import { INTRO_ART } from "@/lib/game/intro";
+import { AnsiArt } from "@/components/ansi-art";
+import { INTRO_ART, INTRO_DESCRIPTION } from "@/lib/game/intro";
 import type {
   CharacterProfile,
   CharacterSummary,
@@ -31,7 +32,7 @@ export function GameTerminal({
   onSignOut: () => Promise<void>;
 }>) {
   const [messages, setMessages] = useState<GameMessage[]>(() => [
-    { tone: "location", text: INTRO_ART },
+    { tone: "art", text: INTRO_ART },
     { tone: "narrative", text: `Welcome, ${characterProfile.name}. The realm remembers you.` },
     { tone: "system", text: "Type HELP for commands. Type CLEAR to clear this terminal." },
   ]);
@@ -359,7 +360,9 @@ export function GameTerminal({
         aria-live="polite"
         aria-label="Game transcript"
       >
-        {messages.map((entry, index) => (
+        {messages.map((entry, index) => entry.tone === "art" || entry.format === "ansi" ? (
+          <AnsiArt key={index} text={entry.text} label={entry.label ?? (entry.tone === "art" ? INTRO_DESCRIPTION : "Game panel")} readable={entry.format === "ansi"} />
+        ) : (
           <p className={`message tone-${entry.tone}`} key={`${index}-${entry.text}`}>
             {entry.text}
           </p>
