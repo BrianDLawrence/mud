@@ -3,6 +3,7 @@ import { INTRO_ART } from "@/lib/game/intro";
 import { resolveCommand } from "@/lib/game/command-resolution";
 import { renderAnsiMap } from "@/lib/game/map";
 import { normalizeCharacterState } from "@/lib/game/character-state";
+import { applyDamage, advanceCondition, resurrect } from "@/lib/game/mortality";
 import { disciplines } from "@/lib/game/disciplines";
 import {
   effectiveAttributes,
@@ -34,13 +35,14 @@ const helpText = [
   "attack <creature>",
   "stop",
   "guard / aim / cast ember <creature>",
-  "smite <creature> / pray",
-  "sneak / backstab <creature>",
+  "smite <creature> / pray [player]",
+  "sneak [on/off] / backstab <creature>",
+  "pvp on / pvp off / aid <player> / resurrect / recreate",
   "resistance",
   "loot",
   "inventory",
   "equipment",
-  "equip <item>", "unequip <slot>", "shop / buy <item> / sell <item>", "use <item>", "search", "map",
+  "equip <item>", "unequip <slot>", "shop / buy <item> / sell <item>", "use <item> [on player]", "search", "map",
   "talk <person>",
   "accept <quest>",
   "quests",
@@ -430,15 +432,15 @@ function creatureAttack(
       : creature.damage - equipmentArmor(state.equipment);
   const minimumDamage = creature.damage > 0 ? 1 : 0;
   const damage = Math.max(minimumDamage, resistedDamage - guardReduction);
-  const health = Math.max(0, state.health - damage);
+  const injury = applyDamage(state, damage, attackAt);
+  const health = injury.state.health;
   const combatState: CharacterState = {
-    ...state,
-    health,
+    ...injury.state,
     guarding: undefined,
-    combat: {
+    combat: injury.state.lifeState === "alive" ? {
       ...state.combat,
       nextCreatureAttackAt: attackAt + creature.attackIntervalMs,
-    },
+    } : undefined,
   };
   const resistanceNote =
     creature.damageType === "magic" && (discipline?.magicResistance ?? 0) > 0
@@ -459,31 +461,9 @@ function creatureAttack(
     };
   }
 
-  const recoveryHealth = Math.ceil(state.maxHealth / 2);
-  const recoveryMana = Math.ceil(state.maxMana / 2);
   return {
-    state: {
-      ...combatState,
-      roomId: firstLightWorld.entryRoomId,
-      health: recoveryHealth,
-      mana: recoveryMana,
-      deathCount: state.deathCount + 1,
-      combat: undefined,
-      aiming: undefined,
-      sneaking: undefined,
-    },
-    messages: [
-      strike,
-      message("combat", "Darkness closes over you."),
-      message(
-        "location",
-        "You wake beside the Copper Lantern, bruised but alive.",
-      ),
-      message(
-        "status",
-        `Health restored to ${recoveryHealth}/${state.maxHealth}. No experience was lost.`,
-      ),
-    ],
+    state: { ...combatState, aiming: undefined, sneaking: undefined },
+    messages: [strike, ...injury.messages],
   };
 }
 
@@ -1086,7 +1066,8 @@ export function executeCommand(
   rawCommand: string,
   options: ExecuteCommandOptions = {},
 ): CommandResult {
-  const state = normalizeCharacterState(currentState);
+  const condition = advanceCondition(currentState, options.nowMs ?? Date.now());
+  const state = condition.state;
   const clock = options.nowMs ?? Date.now();
   state.respawnAt = Object.fromEntries(Object.entries(state.respawnAt).filter(([, at]) => at > clock));
   const command = rawCommand.trim();
@@ -1097,6 +1078,20 @@ export function executeCommand(
   if ("error" in resolved) return { state, messages: [message("error", resolved.error)] };
   const { verb, argument } = resolved;
   const nowMs = options.nowMs ?? Date.now();
+
+  if (state.lifeState === "dead" || state.lifeState === "permadead") {
+    if (verb === "resurrect") return resurrect(state);
+    if (!["help", "?", "look", "stats"].includes(verb)) return {
+      state,
+      messages: [{ tone: "error", text: state.lifeState === "permadead"
+        ? "This character's final life is over. Create a new character."
+        : "You are dead. Type RESURRECT to return at the Lantern Inn." }],
+    };
+  }
+  if (state.lifeState === "dying" && !["help", "?", "look", "stats"].includes(verb)) return {
+    state,
+    messages: [{ tone: "error", text: "You are helpless. Another player can AID or heal you." }],
+  };
 
   if (!state.discipline && !["help", "?"].includes(verb)) {
     return {
@@ -1188,8 +1183,13 @@ export function executeCommand(
     case "pray":
       return pray(state);
     case "sneak":
+      if (argument && !["on", "off"].includes(argument.toLowerCase())) return {
+        state, messages: [message("error", "Type SNEAK ON or SNEAK OFF.")],
+      };
       return state.discipline === "rogue"
-        ? state.combat
+        ? argument.toLowerCase() === "off"
+          ? { state: { ...state, sneaking: undefined }, messages: [message("status", "You step out of the shadows.")] }
+          : state.combat
           ? {
               state,
               messages: [message("error", "You cannot disappear while already engaged.")],

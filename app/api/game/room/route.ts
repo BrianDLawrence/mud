@@ -1,6 +1,9 @@
 import { ObjectId } from "mongodb";
 import { NextResponse } from "next/server";
 import { getPlayerCharacter } from "@/lib/game/player-character";
+import { settleCharacter } from "@/lib/game/character-service";
+import { characterSummary } from "@/lib/game/summary";
+import { effectiveAttributes } from "@/lib/game/items";
 import { heartbeatRoom, leaveRoom } from "@/lib/game/room-service";
 import { getRoomStore } from "@/lib/game/room-store";
 import { getGameStore } from "@/lib/game/store";
@@ -12,8 +15,12 @@ export const dynamic = "force-dynamic";
 async function resolveCharacter(request: Request) {
   const player = await getAuthenticatedPlayer(request);
   if (!player) return null;
-  const ownedCharacter = await getPlayerCharacter(getGameStore(), player);
-  return ownedCharacter ? { player, ...ownedCharacter } : null;
+  const store = getGameStore();
+  const ownedCharacter = await getPlayerCharacter(store, player);
+  if (!ownedCharacter) return null;
+  const settled = await settleCharacter(store, getRoomStore(), ownedCharacter.id);
+  return settled ? { player, id: ownedCharacter.id, character: settled.character,
+    conditionMessages: settled.messages } : null;
 }
 
 export async function POST(request: Request) {
@@ -24,15 +31,14 @@ export async function POST(request: Request) {
     }
 
     const roomStore = getRoomStore();
-    await heartbeatRoom(
-      roomStore,
-      resolved.id,
-      resolved.character.name,
-      resolved.character.state.roomId,
-    );
+    if (!["dead", "permadead"].includes(resolved.character.state.lifeState ?? "alive")) {
+      await heartbeatRoom(roomStore, resolved.id, resolved.character.name,
+        resolved.character.state.roomId, resolved.character.state);
+    }
     const cursor = await roomStore.latestCursor(resolved.character.state.roomId);
 
-    return NextResponse.json({ cursor });
+    return NextResponse.json({ cursor, character: characterSummary(resolved.character.state),
+      messages: resolved.conditionMessages });
   } catch (error) {
     console.error("Room heartbeat failed", error);
     return NextResponse.json(
@@ -68,8 +74,9 @@ export async function GET(request: Request) {
       resolved.character.state.roomId,
       after,
       resolved.id,
+      effectiveAttributes(resolved.character.state).intellect,
     );
-    return NextResponse.json(feed, {
+    return NextResponse.json({ ...feed, character: characterSummary(resolved.character.state) }, {
       headers: { "cache-control": "no-store" },
     });
   } catch (error) {

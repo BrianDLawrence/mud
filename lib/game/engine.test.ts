@@ -204,6 +204,7 @@ describe("command engine", () => {
 
     const rogue = travel(adventurer("rogue"), "north", "north");
     const hidden = executeCommand(rogue, "sneak").state;
+    expect(executeCommand(hidden, "sneak off").state.sneaking).toBeUndefined();
     const backstab = executeCommand(hidden, "backstab crawler", {
       nowMs: 1_000,
     });
@@ -270,16 +271,17 @@ describe("command engine", () => {
     expect(completed.messages.some((entry) => entry.text.includes("QUEST COMPLETE"))).toBe(true);
   });
 
-  it("recovers defeated characters at the inn without an XP penalty", () => {
+  it("leaves defeated characters helpless in the room instead of teleporting them", () => {
     const atBoss = travel(adventurer(), "north", "north", "down");
     const wounded = { ...atBoss, health: 1, experience: 42 };
     const started = executeCommand(wounded, "attack keeper", { nowMs: 1_000 });
     const result = advanceCombat(started.state, 3_400);
 
-    expect(result.state.roomId).toBe("lantern-inn");
-    expect(result.state.health).toBe(32);
+    expect(result.state.roomId).toBe("root-cellar");
+    expect(result.state.health).toBeLessThanOrEqual(0);
+    expect(result.state.lifeState).toBe("dying");
     expect(result.state.experience).toBe(42);
-    expect(result.state.deathCount).toBe(1);
+    expect(result.state.deathCount).toBe(0);
     expect(result.state.combat).toBeUndefined();
   });
 

@@ -38,6 +38,9 @@ export function createInitialCharacterState(): CharacterState {
     groundLoot: [],
     quests: [],
     deathCount: 0,
+    claimedDropIds: [],
+    lifeState: "alive",
+    pvpEnabled: false,
     defeatedCreatureIds: [],
   };
 }
@@ -46,6 +49,10 @@ function finiteNonnegative(value: unknown, fallback: number): number {
   return typeof value === "number" && Number.isFinite(value) && value >= 0
     ? value
     : fallback;
+}
+
+function finiteNumber(value: unknown, fallback: number): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
 }
 
 function validDiscipline(value: unknown): DisciplineId | undefined {
@@ -119,7 +126,7 @@ export function normalizeCharacterState(input: CharacterState): CharacterState {
         noviceAttributes.vitality,
       ),
     },
-    health: Math.min(maxHealth, finiteNonnegative(source.health, maxHealth)),
+    health: Math.min(maxHealth, finiteNumber(source.health, maxHealth)),
     maxHealth,
     mana: Math.min(maxMana, finiteNonnegative(source.mana, maxMana)),
     maxMana,
@@ -137,6 +144,22 @@ export function normalizeCharacterState(input: CharacterState): CharacterState {
       ? source.quests.map((quest) => ({ ...quest }))
       : [],
     deathCount: Math.floor(finiteNonnegative(source.deathCount, 0)),
+    lifeState: ["alive", "dying", "dead", "permadead"].includes(source.lifeState ?? "")
+      ? source.lifeState
+      : "alive",
+    ...(source.conditionAt ? { conditionAt: finiteNonnegative(source.conditionAt, 0) } : {}),
+    ...(source.receivingAid ? { receivingAid: true } : {}),
+    pvpEnabled: source.pvpEnabled || false,
+    ...(typeof source.pvpConfirmation === "string" ? { pvpConfirmation: source.pvpConfirmation } : {}),
+    ...(source.nextPvpAttackAt ? { nextPvpAttackAt: finiteNonnegative(source.nextPvpAttackAt, 0) } : {}),
+    ...(source.deathDrop ? { deathDrop: {
+      id: source.deathDrop.id,
+      roomId: source.deathDrop.roomId,
+      itemIds: [...source.deathDrop.itemIds],
+      gold: source.deathDrop.gold,
+    } } : {}),
+    ...(source.deathDropPublishedId ? { deathDropPublishedId: source.deathDropPublishedId } : {}),
+    claimedDropIds: Array.isArray(source.claimedDropIds) ? [...source.claimedDropIds] : [],
     defeatedCreatureIds: Array.isArray(source.defeatedCreatureIds)
       ? [...source.defeatedCreatureIds]
       : [],

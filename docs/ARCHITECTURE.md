@@ -41,6 +41,8 @@ Discipline selection is a separate authenticated compare-and-set mutation. It gr
 
 Active combat persists creature HP, attack intent, a deterministic roll sequence, and the next player/creature attack timestamps. The client polls an authenticated combat endpoint only while engagement exists. Each request derives due events and commits through optimistic concurrency; Vercel never needs a durable process or in-memory combat timer. `STOP` clears player attack intent but preserves the creature's schedule.
 
+Player attacks are explicit commands with an attacker cooldown and a compare-and-set update to the target snapshot. A target can be damaged while their own PvP setting is off; that setting turns on when struck. Dying HP progression is derived from a stored timestamp during ordinary room polling. Death publishes a shared room drop and an idempotent event. Collected drops retain a marker so a replay cannot restore claimed items. Final character snapshots are copied to `archived_characters` before account-owned character recreation.
+
 The compare-and-set commit prevents two concurrent requests from overwriting each other. The route retries a conflicting command from the newest state a limited number of times.
 
 ## Runtime strategy
@@ -65,6 +67,8 @@ Planned collections:
 | `scripts` | Player automation source, compiled form, permissions, and limits |
 | `script_runs` | Durable execution state if offline automation is introduced |
 | `room_presence` | Ephemeral room membership with automatic expiration |
+| `room_drops` | Shared death loot, claim state, and collected markers |
+| `archived_characters` | Preserved final snapshots after permanent death and recreation |
 | `rate_limits` | Expiring fixed-window command and social limits |
 
 Avoid a single world document. Rooms, entities, and published packs need stable identifiers. Hot mutable state should remain separate from mostly immutable content.

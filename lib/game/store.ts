@@ -29,8 +29,9 @@ function cloneStoredCharacter(character: StoredCharacter): StoredCharacter {
   return { ...clone, state: normalizeCharacterState(clone.state) };
 }
 
-class MemoryGameStore implements GameStore {
+export class MemoryGameStore implements GameStore {
   private readonly characters = new Map<string, StoredCharacter>();
+  private readonly archived = new Map<string, StoredCharacter>();
 
   async get(characterId: string): Promise<StoredCharacter | null> {
     const existing = this.characters.get(characterId);
@@ -42,16 +43,18 @@ class MemoryGameStore implements GameStore {
     name: string,
     normalizedName: string,
   ): Promise<CreateCharacterResult> {
-    if (this.characters.has(characterId)) {
+    const previous = this.characters.get(characterId);
+    if (previous && previous.state.lifeState !== "permadead") {
       return { created: false, reason: "character_exists" };
     }
 
-    const nameTaken = [...this.characters.values()].some(
-      (character) => character.name.toLocaleLowerCase("en-US") === normalizedName,
+    const nameTaken = [...this.characters.entries()].some(
+      ([id, character]) => id !== characterId && character.name.toLocaleLowerCase("en-US") === normalizedName,
     );
     if (nameTaken) return { created: false, reason: "name_taken" };
 
-    const created = { name, state: createInitialCharacterState(), version: 0 };
+    if (previous) this.archived.set(`${characterId}:${previous.version}`, structuredClone(previous));
+    const created = { name, state: createInitialCharacterState(), version: (previous?.version ?? -1) + 1 };
     this.characters.set(characterId, created);
     return { created: true, character: cloneStoredCharacter(created) };
   }
@@ -92,6 +95,11 @@ class MongoGameStore implements GameStore {
     return getMongoClient().db(databaseName).collection("characters");
   }
 
+  private get archive(): Collection<CharacterDocument> {
+    const databaseName = process.env.MONGODB_DATABASE || "nextmud";
+    return getMongoClient().db(databaseName).collection("archived_characters");
+  }
+
   private ensureIndexes(): Promise<string> {
     this.indexesReady ??= this.collection.createIndex(
       { normalizedName: 1 },
@@ -121,6 +129,31 @@ class MongoGameStore implements GameStore {
     normalizedName: string,
   ): Promise<CreateCharacterResult> {
     await this.ensureIndexes();
+    const previous = await this.collection.findOne({ _id: characterId });
+    if (previous?.state.lifeState === "permadead") {
+      const archiveId = `${characterId}:${previous.version}`;
+      await this.archive.updateOne({ _id: archiveId }, {
+        $setOnInsert: { ...previous, _id: archiveId },
+      }, { upsert: true });
+      const nextState = createInitialCharacterState();
+      let replaced;
+      try {
+        replaced = await this.collection.updateOne(
+          { _id: characterId, version: previous.version, "state.lifeState": "permadead" },
+          { $set: { name, normalizedName, state: nextState, updatedAt: new Date() }, $inc: { version: 1 } },
+        );
+      } catch (error) {
+        if (error instanceof MongoServerError && error.code === 11000) {
+          return { created: false, reason: "name_taken" };
+        }
+        throw error;
+      }
+      if (replaced.modifiedCount === 1) return { created: true, character: {
+        name, state: nextState, version: previous.version + 1,
+      } };
+      return { created: false, reason: "character_exists" };
+    }
+    if (previous) return { created: false, reason: "character_exists" };
     const now = new Date();
     const character: CharacterDocument = {
       _id: characterId,

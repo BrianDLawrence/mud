@@ -90,6 +90,15 @@ export interface CharacterState {
   groundLoot: LootDrop[];
   quests: QuestProgress[];
   deathCount: number;
+  lifeState?: "alive" | "dying" | "dead" | "permadead";
+  conditionAt?: number;
+  receivingAid?: boolean;
+  pvpEnabled?: boolean;
+  pvpConfirmation?: string;
+  nextPvpAttackAt?: number;
+  deathDrop?: { id: string; roomId: string; itemIds: string[]; gold: number };
+  deathDropPublishedId?: string;
+  claimedDropIds?: string[];
   defeatedCreatureIds: string[];
   guarding?: boolean;
   aiming?: boolean;
@@ -118,6 +127,9 @@ export interface CharacterSummary {
   level: number;
   inCombat: boolean;
   attacking: boolean;
+  lifeState: "alive" | "dying" | "dead" | "permadead";
+  livesRemaining: number;
+  pvpEnabled: boolean;
 }
 
 export interface CharacterProfile {
@@ -133,6 +145,8 @@ export const roomEventTypes = [
   "presence.left",
   "chat.say",
   "chat.emote",
+  "combat.player",
+  "condition.player",
 ] as const;
 
 export type RoomEventType = (typeof roomEventTypes)[number];
