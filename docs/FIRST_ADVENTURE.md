@@ -14,9 +14,9 @@ Each region has a six-room northbound spine, four optional eastern branches, and
 
 ## Getting started
 
-Choose one of the six disciplines. TALK KEEPER and ACCEPT ORCHARD start the original quest. Travel NORTH twice, ATTACK CRAWLER, LOOT, and DOWN to face the rootbound keeper. Return to the inn and TALK KEEPER for rewards and the next assignment. Follow the road north from the Drowned Orchard to explore the expanded regions. TALK KEEPER turns in ready quests before offering more work. QUESTS tracks progress.
+Choose one of the six disciplines. TALK KEEPER and ACCEPT start the original quest. ACCEPT uses the quest most recently offered in the current room; ACCEPT <quest> remains available when you want to name one. Travel NORTH twice, ATTACK CRAWLER, LOOT, and DOWN to face the rootbound keeper. Return to the inn and TALK KEEPER for rewards and the next assignment. Follow the road north from the Drowned Orchard to explore the expanded regions. TALK KEEPER turns in ready quests before offering more work. QUESTS tracks progress.
 
-Lanternwick has a smith on Market Lane (east of the inn) and an apothecary east of the market. SHOP lists stock, BUY <item> purchases, and SELL <item> sells an unequipped item for one third of its price, minimum one gold. Characters start with 15 gold; kills award more. The legacy copper-coins item remains a sellable keepsake.
+Lanternwick has Smith Orla on Market Lane (east of the inn) and apothecary Nessa east of the market. TALK to either merchant to meet them. SHOP lists stock, BUY <item> purchases, and SELL <item> sells an unequipped item for one third of its price, minimum one gold. Characters start with 15 gold; kills award more. The legacy copper-coins item remains a sellable keepsake.
 
 ## Equipment and supplies
 

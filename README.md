@@ -41,7 +41,7 @@ The initial realm supports verified accounts, unique character names, shared roo
 
 ```text
 talk keeper
-accept orchard
+accept
 north
 examine tracks
 north

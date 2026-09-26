@@ -96,6 +96,7 @@ export interface CharacterState {
   equipment: CharacterEquipment;
   groundLoot: LootDrop[];
   quests: QuestProgress[];
+  offeredQuestId?: string;
   deathCount: number;
   lifeState?: "alive" | "dying" | "dead" | "permadead";
   conditionAt?: number;

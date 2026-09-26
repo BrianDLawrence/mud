@@ -48,7 +48,7 @@ const helpText = [
   "equipment",
   "equip <item> [ring1/ring2]", "unequip <slot>", "shop / buy <item> / sell <item>", "use <item> [on player]", "search", "map",
   "talk <person>",
-  "accept <quest>",
+  "accept [quest]",
   "quests",
   "abilities",
   "rest",
@@ -147,6 +147,7 @@ function move(state: CharacterState, requestedDirection: string): CommandResult 
   const nextState = {
     ...state,
     roomId: destination,
+    offeredQuestId: undefined,
     discoveredRoomIds: [...new Set([...state.discoveredRoomIds, destination])],
     combat: undefined,
     guarding: undefined,
@@ -960,36 +961,40 @@ function talk(state: CharacterState, target: string): CommandResult {
     ?? available.find((q) => state.quests.some((p) => p.questId === q.id))
     ?? available[0];
   if (!quest) {
-    return { state, messages: [message("speech", npc.dialogue)] };
+    return { state: { ...state, offeredQuestId: undefined }, messages: [message("speech", npc.dialogue)] };
   }
 
   const progress = state.quests.find((entry) => entry.questId === quest.id);
   if (!progress) {
     return {
-      state,
+      state: { ...state, offeredQuestId: quest.id },
       messages: [
         message("speech", npc.dialogue),
         message("speech", quest.offeredDialogue),
-        message("system", `QUEST OFFERED — ${quest.title}. Type ACCEPT ${quest.title}.`),
+        message("system", `QUEST OFFERED — ${quest.title}. Type ACCEPT.`),
       ],
     };
   }
   if (progress.status === "completed") {
-    return { state, messages: [message("speech", npc.dialogue)] };
+    return { state: { ...state, offeredQuestId: undefined }, messages: [message("speech", npc.dialogue)] };
   }
   if (state.defeatedCreatureIds.includes(quest.objective.creatureId)) {
-    return completeQuest(state, quest);
+    return completeQuest({ ...state, offeredQuestId: undefined }, quest);
   }
-  return { state, messages: [message("speech", quest.activeDialogue)] };
+  return { state: { ...state, offeredQuestId: undefined }, messages: [message("speech", quest.activeDialogue)] };
 }
 
 function acceptQuest(state: CharacterState, target: string): CommandResult {
   const room = getRoom(state.roomId);
-  const quest = firstLightWorld.quests.find((candidate) => matchesQuest(target, candidate));
+  const quest = target
+    ? firstLightWorld.quests.find((candidate) => matchesQuest(target, candidate))
+    : firstLightWorld.quests.find((candidate) => candidate.id === state.offeredQuestId);
   if (!quest || !room.npcs.some((npc) => npc.id === quest.giverNpcId)) {
     return {
       state,
-      messages: [message("error", `No one here has offered "${target || "that quest"}".`)],
+      messages: [message("error", target
+        ? `No one here has offered "${target}".`
+        : "No quest has been offered here. Talk to a quest giver first.")],
     };
   }
 
@@ -1011,6 +1016,7 @@ function acceptQuest(state: CharacterState, target: string): CommandResult {
   return {
     state: {
       ...state,
+      offeredQuestId: undefined,
       quests: [...state.quests, { questId: quest.id, status: "active" }],
     },
     messages: [
