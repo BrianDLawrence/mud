@@ -233,7 +233,16 @@
         }
       ],
       "creatures": [],
-      "npcs": [],
+      "npcs": [
+        {
+          "id": "smith-orla",
+          "name": "Smith Orla",
+          "aliases": ["orla", "smith", "blacksmith"],
+          "description": "A broad-shouldered smith tends the market forge, weighing each blade in a soot-darkened hand.",
+          "dialogue": "Orla says, “Good steel keeps its edge. Have a look at the rack if you need gear for the road.”",
+          "questIds": []
+        }
+      ],
       "shop": [
         "trail-blade-1",
         "trail-focus-1",
@@ -374,6 +383,16 @@
       "shop": [
         "healing-draught",
         "mana-draught"
+      ],
+      "npcs": [
+        {
+          "id": "apothecary-nessa",
+          "name": "Nessa",
+          "aliases": ["apothecary", "herbalist"],
+          "description": "Nessa sorts bundles of dried herbs behind a counter lined with glass draught bottles.",
+          "dialogue": "Nessa says, “A draught can see you through a hard fight. Take what you need for the road.”",
+          "questIds": []
+        }
       ],
       "mapPosition": {
         "x": 2,

@@ -205,6 +205,14 @@ export function normalizeCharacterState(input: CharacterState, ownerId?: string)
     quests: Array.isArray(source.quests)
       ? source.quests.map((quest) => ({ ...quest }))
       : [],
+    ...(typeof source.offeredQuestId === "string" &&
+      firstLightWorld.quests.some((quest) =>
+        quest.id === source.offeredQuestId &&
+        !(Array.isArray(source.quests) && source.quests.some((progress) => progress.questId === quest.id)) &&
+        firstLightWorld.rooms.some((room) =>
+          room.id === source.roomId && room.npcs.some((npc) => npc.id === quest.giverNpcId),
+        ),
+      ) ? { offeredQuestId: source.offeredQuestId } : {}),
     deathCount: Math.floor(finiteNonnegative(source.deathCount, 0)),
     lifeState: ["alive", "dying", "dead", "permadead"].includes(source.lifeState ?? "")
       ? source.lifeState

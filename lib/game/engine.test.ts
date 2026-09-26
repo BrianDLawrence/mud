@@ -12,6 +12,7 @@ import { normalizeCharacterState } from "@/lib/game/character-state";
 import { chooseDiscipline } from "@/lib/game/disciplines";
 import type { CharacterState, DisciplineId } from "@/lib/game/types";
 import { firstLightWorld } from "@/lib/game/world";
+import { worldPackSchema } from "@/lib/game/world-schema";
 
 function adventurer(discipline: DisciplineId = "vanguard"): CharacterState {
   return chooseDiscipline(createInitialCharacterState(), discipline);
@@ -48,6 +49,22 @@ describe("world content", () => {
     expect(firstLightWorld.quests[0]?.objective.creatureId).toBe(
       "rootbound-keeper",
     );
+  });
+
+  it("puts a speaking NPC in every shop and rejects unstaffed shops", () => {
+    for (const room of firstLightWorld.rooms.filter((candidate) => candidate.shop.length > 0)) {
+      expect(room.npcs.length, room.id).toBeGreaterThan(0);
+      for (const npc of room.npcs) {
+        const result = executeCommand({ ...adventurer(), roomId: room.id }, `talk ${npc.name}`);
+        expect(result.messages[0]?.text).toBe(npc.dialogue);
+      }
+    }
+
+    const unstaffed = {
+      ...firstLightWorld,
+      rooms: firstLightWorld.rooms.map((room) => room.id === "market-lane" ? { ...room, npcs: [] } : room),
+    };
+    expect(worldPackSchema.safeParse(unstaffed).success).toBe(false);
   });
 });
 
@@ -248,10 +265,9 @@ describe("command engine", () => {
 
   it("runs the first quest through its boss and reaches level three", () => {
     let state = adventurer();
-    expect(executeCommand(state, "talk keeper").messages.at(-1)?.text).toContain(
-      "ACCEPT",
-    );
-    state = executeCommand(state, "accept orchard").state;
+    const offered = executeCommand(state, "talk keeper");
+    expect(offered.messages.at(-1)?.text).toContain("Type ACCEPT.");
+    state = executeCommand(offered.state, "accept").state;
     state = travel(state, "north", "north");
     state = fightUntilDefeated(state, "crawler");
     state = travel(state, "down");
@@ -269,6 +285,25 @@ describe("command engine", () => {
     expect(completed.state.inventory.map((entry) => entry.itemId)).toContain("pale-heart-charm");
     expect(completed.state.quests[0]?.status).toBe("completed");
     expect(completed.messages.some((entry) => entry.text.includes("QUEST COMPLETE"))).toBe(true);
+  });
+
+  it("accepts only the quest most recently offered in the current room", () => {
+    const initial = adventurer();
+    expect(executeCommand(initial, "accept").messages[0]?.text).toContain("Talk to a quest giver first");
+    const offered = executeCommand(initial, "talk keeper");
+    expect(normalizeCharacterState(offered.state).offeredQuestId).toBe("beneath-black-roots");
+    const accepted = executeCommand(offered.state, "accept");
+    expect(accepted.state.quests.map((quest) => quest.questId)).toEqual(["beneath-black-roots"]);
+    expect(accepted.state.offeredQuestId).toBeUndefined();
+    expect(executeCommand(accepted.state, "accept").state.quests).toHaveLength(1);
+
+    const left = travel(offered.state, "east", "west");
+    expect(left.offeredQuestId).toBeUndefined();
+    expect(executeCommand(left, "accept").state.quests).toHaveLength(0);
+
+    const next = executeCommand({ ...accepted.state, quests: [{ questId: "beneath-black-roots", status: "completed" }] }, "talk keeper");
+    expect(next.state.offeredQuestId).toBe("orchard-lamp");
+    expect(executeCommand(next.state, "accept").state.quests.at(-1)?.questId).toBe("orchard-lamp");
   });
 
   it("leaves defeated characters helpless in the room instead of teleporting them", () => {

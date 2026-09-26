@@ -104,6 +104,14 @@ export const worldPackSchema = z
     }
 
     for (const [roomIndex, room] of world.rooms.entries()) {
+      if (room.shop.length > 0 && room.npcs.length === 0) {
+        context.addIssue({
+          code: "custom",
+          path: ["rooms", roomIndex, "npcs"],
+          message: `Shop room has no NPC: ${room.id}`,
+        });
+      }
+
       for (const [direction, destination] of Object.entries({ ...room.exits, ...room.hiddenExits })) {
         if (!roomIds.has(destination)) {
           context.addIssue({
