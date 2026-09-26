@@ -3,7 +3,7 @@ import { z } from "zod";
 import { executeCommand } from "@/lib/game/engine";
 import { publishDeath, settleCharacter } from "@/lib/game/character-service";
 import { handleMultiplayerCommand, visiblePlayers } from "@/lib/game/multiplayer";
-import { itemName } from "@/lib/game/items";
+import { itemName, receiveItems } from "@/lib/game/items";
 import { getPlayerCharacter } from "@/lib/game/player-character";
 import { parseRoomCommand } from "@/lib/game/room-command";
 import { heartbeatRoom } from "@/lib/game/room-service";
@@ -17,7 +17,12 @@ export const dynamic = "force-dynamic";
 
 const commandRequestSchema = z.object({
   command: z.string().trim().min(1).max(500),
+  compact: z.boolean().optional(),
 });
+
+function dropItems(drop: { id: string; items?: { uid: string; itemId: string }[]; itemIds?: string[] }) {
+  return drop.items ?? (drop.itemIds ?? []).map((itemId, index) => ({ uid: `legacy-drop:${drop.id}:${index}`, itemId }));
+}
 
 export async function POST(request: Request) {
   try {
@@ -158,14 +163,14 @@ export async function POST(request: Request) {
               return NextResponse.json({ messages: [{ tone: "status", text: "That cache is already yours." }],
                 character: characterSummary(owned.character.state) });
             }
-            const next = { ...owned.character.state,
-              inventory: [...owned.character.state.inventory, ...claimed.itemIds],
+            const claimedItems = dropItems(claimed);
+            const next = { ...receiveItems(owned.character.state, claimedItems),
               gold: owned.character.state.gold + claimed.gold,
               claimedDropIds: [...(owned.character.state.claimedDropIds ?? []), claimed.id] };
             if (await store.commit(owned.id, owned.character.version, next)) {
               await roomStore.completeDrop(claimed.id, resolvedCharacter!.id);
               return NextResponse.json({ messages: [{ tone: "experience",
-                text: `You collect ${claimed.itemIds.map(itemName).join(", ") || "no items"} and ${claimed.gold} gold from ${claimed.ownerName}'s remains.` }],
+                text: `You collect ${claimedItems.map((entry) => itemName(entry.itemId)).join(", ") || "no items"} and ${claimed.gold} gold from ${claimed.ownerName}'s remains.` }],
                 character: characterSummary(next) });
             }
           }
@@ -185,6 +190,7 @@ export async function POST(request: Request) {
       const result = executeCommand(
         ownedCharacter.character.state,
         parsed.data.command,
+        { compact: parsed.data.compact },
       );
       const committed = await store.commit(
         ownedCharacter.id,
@@ -221,7 +227,7 @@ export async function POST(request: Request) {
           messages: [...result.messages,
             ...players.map((person) => ({ tone: "presence" as const, text: `${person.name} is here.` })),
             ...drops.map((drop) => ({ tone: "experience" as const,
-              text: `On the ground: ${drop.itemIds.map(itemName).join(", ") || "no items"} and ${drop.gold} gold from ${drop.ownerName}. Type LOOT to take it.` }))],
+              text: `On the ground: ${dropItems(drop).map((entry) => itemName(entry.itemId)).join(", ") || "no items"} and ${drop.gold} gold from ${drop.ownerName}. Type LOOT to take it.` }))],
           character: characterSummary(result.state),
         });
 

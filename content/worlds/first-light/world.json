@@ -238,18 +238,34 @@
         "trail-blade-1",
         "trail-focus-1",
         "trail-armor-1",
+        "trail-greaves-1",
+        "trail-boots-1",
         "trail-blade-2",
         "trail-focus-2",
         "trail-armor-2",
+        "trail-greaves-2",
+        "trail-boots-2",
         "trail-blade-3",
         "trail-focus-3",
         "trail-armor-3",
+        "trail-greaves-3",
+        "trail-boots-3",
         "trail-blade-4",
         "trail-focus-4",
         "trail-armor-4",
+        "trail-greaves-4",
+        "trail-boots-4",
         "trail-blade-5",
         "trail-focus-5",
-        "trail-armor-5"
+        "trail-armor-5",
+        "trail-greaves-5",
+        "trail-boots-5",
+        "trail-helm",
+        "trail-gloves",
+        "trail-belt",
+        "trail-shield",
+        "waystone-pendant",
+        "copper-signet"
       ],
       "mapPosition": {
         "x": 1,
@@ -850,7 +866,9 @@
           "loot": [
             "trail-blade-1",
             "trail-focus-1",
-            "trail-armor-1"
+            "trail-armor-1",
+            "trail-greaves-1",
+            "trail-boots-1"
           ]
         }
       ],
@@ -1331,7 +1349,9 @@
           "loot": [
             "trail-blade-2",
             "trail-focus-2",
-            "trail-armor-2"
+            "trail-armor-2",
+            "trail-greaves-2",
+            "trail-boots-2"
           ]
         }
       ],
@@ -1812,7 +1832,9 @@
           "loot": [
             "trail-blade-3",
             "trail-focus-3",
-            "trail-armor-3"
+            "trail-armor-3",
+            "trail-greaves-3",
+            "trail-boots-3"
           ]
         }
       ],
@@ -2293,7 +2315,9 @@
           "loot": [
             "trail-blade-4",
             "trail-focus-4",
-            "trail-armor-4"
+            "trail-armor-4",
+            "trail-greaves-4",
+            "trail-boots-4"
           ]
         }
       ],
@@ -2773,7 +2797,9 @@
           "loot": [
             "trail-blade-5",
             "trail-focus-5",
-            "trail-armor-5"
+            "trail-armor-5",
+            "trail-greaves-5",
+            "trail-boots-5"
           ]
         }
       ],

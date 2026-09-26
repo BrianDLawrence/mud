@@ -3,6 +3,7 @@ import type {
   MessageTone,
   RoomEventType,
   RoomEventView,
+  InventoryItem,
 } from "@/lib/game/types";
 import { getMongoClient } from "@/lib/mongodb";
 
@@ -43,7 +44,8 @@ interface RateLimitDocument {
 export interface RoomDrop {
   id: string;
   roomId: string;
-  itemIds: string[];
+  items?: InventoryItem[];
+  itemIds?: string[];
   gold: number;
   ownerName: string;
   claimedBy?: string;

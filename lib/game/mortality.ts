@@ -16,9 +16,9 @@ function deathThreshold(state: CharacterState): number {
 function finishDeath(state: CharacterState, nowMs: number): CommandResult {
   const deathCount = state.deathCount + 1;
   const permanent = deathCount >= MAX_LIVES;
-  const itemIds = [...state.inventory];
-  for (const id of Object.values(state.equipment)) {
-    if (id && !itemIds.includes(id)) itemIds.push(id);
+  const items = [...state.inventory];
+  for (const entry of Object.values(state.equipment)) {
+    if (entry && !items.some((item) => item.uid === entry.uid)) items.push(entry);
   }
   const gold = state.gold;
   return {
@@ -37,7 +37,7 @@ function finishDeath(state: CharacterState, nowMs: number): CommandResult {
       deathDrop: {
         id: `${nowMs}:${deathCount}`,
         roomId: state.roomId,
-        itemIds,
+        items,
         gold,
       },
       deathDropPublishedId: undefined,

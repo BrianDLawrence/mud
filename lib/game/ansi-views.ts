@@ -1,7 +1,7 @@
 import { parseAnsi } from "@/lib/game/ansi";
 import { disciplines } from "@/lib/game/disciplines";
-import { effectiveAttributes, equipmentArmor, equipmentPower, getItem, itemName } from "@/lib/game/items";
-import type { CharacterState } from "@/lib/game/types";
+import { effectiveAttributes, equipmentArmor, equipmentPower, getItem, isEquipped, itemName, uniqueEquipped } from "@/lib/game/items";
+import type { CharacterState, EquipmentSlot } from "@/lib/game/types";
 
 export const tint = (text: string, foreground = 37, background = 40) => `\u001b[${foreground};${background}m${text}\u001b[0m`;
 export const plainAnsi = (text: string) => parseAnsi(text).map((run) => run.text).join("");
@@ -18,37 +18,77 @@ function section(title: string): string {
   return tint(`── ${title} ──`, 96);
 }
 
-function bonuses(id: string): string {
-  const item = getItem(id);
-  const parts: string[] = [];
-  if (item?.power) parts.push(`PWR ${item.power}`);
-  if (item?.armor) parts.push(`ARM ${item.armor}`);
-  for (const [key, value] of Object.entries(item?.bonuses ?? {})) parts.push(`+${value} ${key.slice(0, 3).toUpperCase()}`);
-  return parts.join("  ");
+const equipmentPairs: [EquipmentSlot, EquipmentSlot][] = [
+  ["head", "neck"], ["back", "chest"], ["mainHand", "offHand"],
+  ["hands", "belt"], ["ring1", "ring2"], ["legs", "feet"],
+];
+const slotLabels: Record<EquipmentSlot, string> = {
+  head: "HEAD", neck: "NECK", back: "BACK", chest: "CHEST",
+  mainHand: "MAIN", offHand: "OFF", hands: "HANDS", belt: "BELT",
+  ring1: "RING 1", ring2: "RING 2", legs: "LEGS", feet: "FEET",
+};
+
+function slotText(state: CharacterState, slot: EquipmentSlot, width: number): string {
+  const entry = state.equipment[slot];
+  const name = entry ? itemName(entry.itemId) : "[ empty ]";
+  const limit = width - 9;
+  const label = [...name].length > limit ? `${[...name].slice(0, limit - 1).join("")}…` : name;
+  const body = `${slotLabels[slot].padEnd(7)} ${label}`.padEnd(width);
+  return tint(body.slice(0, 8), 96) + tint(body.slice(8), entry ? 92 : 90);
 }
 
-export function renderInventory(state: CharacterState): string {
+function equipmentRows(state: CharacterState, compact: boolean): string[] {
+  const rows = [section("EQUIPPED")];
+  const silhouette = ["  ◯  ", " ╱│╲ ", "  │  ", " ╱│╲ ", "  │  ", " ╱ ╲ "];
+  for (const [index, [left, right]] of equipmentPairs.entries()) {
+    if (compact) {
+      rows.push(slotText(state, left, 32), slotText(state, right, 32));
+    } else {
+      rows.push(slotText(state, left, 27) + tint(silhouette[index], 36) + slotText(state, right, 27));
+    }
+  }
+  rows.push("", tint(`Weapon ${equipmentPower(state.equipment, "weapon")}   Focus ${equipmentPower(state.equipment, "focus")}   Armor ${equipmentArmor(state.equipment)}`, 93));
+  const bonuses = uniqueEquipped(state.equipment).map((entry) => getItem(entry.itemId)?.bonuses ?? {});
+  const totals = { might: 0, agility: 0, intellect: 0, vitality: 0 };
+  for (const bonus of bonuses) for (const key of Object.keys(totals) as (keyof typeof totals)[]) totals[key] += bonus[key] ?? 0;
+  const bonusText = (keys: (keyof typeof totals)[]) => keys.map((key) =>
+    `${key.slice(0, 3).toUpperCase()} ${totals[key] >= 0 ? "+" : ""}${totals[key]}`).join("  ");
+  rows.push(...(compact
+    ? [tint(`Gear: ${bonusText(["might", "agility"])}`, 93), tint(`      ${bonusText(["intellect", "vitality"])}`, 93)]
+    : [tint(`Gear: ${bonusText(["might", "agility", "intellect", "vitality"])}`, 93)]));
+  return rows;
+}
+
+export function renderEquipment(state: CharacterState, compact = false): string {
+  return ansiPanel("EQUIPMENT", [...equipmentRows(state, compact), "",
+    ...(compact ? [tint("EQUIP <item> [RING1|RING2]", 96), tint("UNEQUIP <slot>", 96)]
+      : [tint("EQUIP <item> [RING1|RING2]   UNEQUIP <slot>", 96)])], compact ? 34 : 59);
+}
+
+export function renderInventory(state: CharacterState, compact = false): string {
   const counts = new Map<string, number>();
-  for (const id of state.inventory) counts.set(id, (counts.get(id) ?? 0) + 1);
-  const rows = [tint(`GOLD ${state.gold}`, 93) + tint(`    ${state.inventory.length} items / ${counts.size} stacks`, 37), "", section("EQUIPPED")];
-  for (const slot of ["weapon", "armor", "focus"] as const) {
-    const id = state.equipment[slot];
-    rows.push(tint(slot.toUpperCase().padEnd(8), 96) + (id ? tint(itemName(id), 92) : tint("[ empty ]", 37)));
-    if (id && bonuses(id)) rows.push("        " + tint(bonuses(id), 93));
+  for (const entry of state.inventory) {
+    if (isEquipped(state.equipment, entry)) continue;
+    counts.set(entry.itemId, (counts.get(entry.itemId) ?? 0) + 1);
   }
-  rows.push("", section("BACKPACK"), tint("    ITEM                                  QTY", 37));
-  if (!counts.size) rows.push(tint("Your pack is empty.", 37));
-  // Equipped stacks come first, then a stable alphabetical list.
-  const equipped = new Set(Object.values(state.equipment));
-  const stacks = [...counts].sort(([a], [b]) => Number(equipped.has(b)) - Number(equipped.has(a)) || itemName(a).localeCompare(itemName(b)));
-  for (const [id, count] of stacks) {
-    const worn = equipped.has(id);
+  const rows = [...(compact
+    ? [tint(`GOLD ${state.gold}`, 93), tint(`${state.inventory.length} carried / ${counts.size} pack stacks`, 37)]
+    : [tint(`GOLD ${state.gold}`, 93) + tint(`    ${state.inventory.length} carried / ${counts.size} pack stacks`, 37)]), "",
+    ...equipmentRows(state, compact), "", section("BACKPACK")];
+  if (!counts.size) rows.push(tint("Your pack is empty.", 90));
+  for (const [id, count] of [...counts].sort(([a], [b]) => itemName(a).localeCompare(itemName(b)))) {
     const item = getItem(id);
-    const color = worn ? 92 : item?.heal || item?.manaRestore ? 95 : 37;
-    rows.push(tint(worn ? "[E] " : "[ ] ", worn ? 92 : 90) + tint(itemName(id).padEnd(38), color) + tint(`x${count}`, 97));
+    const color = item?.heal || item?.manaRestore ? 95 : item?.slot ? 97 : 37;
+    const suffix = ` x${count}`;
+    const available = (compact ? 30 : 53) - suffix.length;
+    const name = itemName(id);
+    const display = [...name].length > available ? `${[...name].slice(0, available - 1).join("")}…` : name;
+    rows.push(tint("• ", 90) + tint(display.padEnd(available), color) + tint(suffix, 93));
   }
-  rows.push("", tint("[E] equipped  ·  Purple: supplies", 37), tint("EQUIP <item>   UNEQUIP <slot>   USE <item>", 96), tint("SELL <item> at a shop   ·   EQ for equipment", 96));
-  return ansiPanel("INVENTORY / TRAVELER'S PACK", rows);
+  rows.push("", tint("Green: worn   Purple: supplies", 37),
+    ...(compact ? [tint("EQUIP <item>   UNEQUIP <slot>", 96), tint("USE <item>", 96)]
+      : [tint("EQUIP <item>   UNEQUIP <slot>   USE <item>", 96)]));
+  return ansiPanel("INVENTORY / TRAVELER'S PACK", rows, compact ? 34 : 59);
 }
 
 function bar(current: number, maximum: number, color: number): string {

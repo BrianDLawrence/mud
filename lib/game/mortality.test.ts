@@ -19,11 +19,11 @@ describe("mortality", () => {
 
   it("kills immediately at minus 25 percent, drops everything, and resurrects at the inn", () => {
     const initial = { ...createInitialCharacterState(), roomId: "root-cellar", health: 1,
-      inventory: ["traveler-cloak", "copper-coins"], gold: 19 };
+      gold: 19 };
     const dead = applyDamage(initial, 14, 1_000).state;
     expect(dead).toMatchObject({ health: -13, lifeState: "dead", deathCount: 1,
       inventory: [], gold: 0, deathDrop: { roomId: "root-cellar", gold: 19 } });
-    expect(dead.deathDrop?.itemIds).toEqual(initial.inventory);
+    expect(dead.deathDrop?.items).toEqual(initial.inventory);
     const revived = resurrect(dead).state;
     expect(revived).toMatchObject({ roomId: "lantern-inn", lifeState: "alive", health: 25,
       deathCount: 1 });
@@ -51,7 +51,7 @@ describe("mortality", () => {
     const character = (await store.get("alice"))!;
     await publishDeath(store, room, "alice", character);
     const [drop] = await room.listDrops("lantern-inn");
-    expect(drop.itemIds).toHaveLength(2);
+    expect(drop.items).toHaveLength(2);
     expect(await room.claimDrop(drop.id, "bob")).toBeTruthy();
     await room.completeDrop(drop.id, "bob");
     await publishDeath(store, room, "alice", (await store.get("alice"))!);

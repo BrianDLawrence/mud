@@ -69,7 +69,7 @@ export function resolveCommand(state: CharacterState, command: string): Resoluti
 
   const room = getRoom(state.roomId);
   const creatures = room.creatures.filter((creature) => !state.respawnAt[creature.id]);
-  const carried = state.inventory.flatMap((id) => { const item = getItem(id); return item ? [item] : []; });
+  const carried = state.inventory.flatMap((entry) => { const item = getItem(entry.itemId); return item ? [item] : []; });
   let targets: Target[] | undefined;
   let spell = "";
   if (["attack", "kill", "smite", "backstab"].includes(verb)) targets = creatures;
@@ -81,8 +81,19 @@ export function resolveCommand(state: CharacterState, command: string): Resoluti
       targets = creatures;
     }
   } else if (verb === "buy") targets = room.shop.flatMap((id) => { const item = getItem(id); return item ? [item] : []; });
-  else if (["equip", "sell", "use"].includes(verb)) targets = carried;
-  else if (verb === "unequip") targets = Object.keys(state.equipment).map((name) => ({ name }));
+  else if (["equip", "sell", "use"].includes(verb)) {
+    if (verb === "equip" && /\s+ring[12]$/i.test(argument)) {
+      const suffix = /\s+ring[12]$/i.exec(argument)![0];
+      const matches = matchingTargets(argument.slice(0, -suffix.length), carried);
+      if (matches.length > 1) return { error: `Which do you mean? ${matches.map((item) => item.name).join("; ")}.` };
+      return { verb, argument: `${matches[0]?.id ?? argument.slice(0, -suffix.length)}${suffix}` };
+    }
+    targets = carried;
+  }
+  else if (verb === "unequip") targets = [
+    ...Object.keys(state.equipment).map((name) => ({ name })),
+    { name: "weapon", aliases: ["w"] }, { name: "armor", aliases: ["a"] }, { name: "focus", aliases: ["f"] },
+  ];
   else if (["talk", "speak"].includes(verb)) targets = room.npcs;
   else if (verb === "accept") targets = firstLightWorld.quests
     .filter((quest) => room.npcs.some((npc) => npc.id === quest.giverNpcId))

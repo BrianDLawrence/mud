@@ -1,4 +1,4 @@
-import { getItem } from "@/lib/game/items";
+import { getItem, grantItems } from "@/lib/game/items";
 import type {
   ArmorWeight,
   CharacterAttributes,
@@ -145,9 +145,20 @@ export function chooseDiscipline(
 
   const maxHealth = deriveMaxHealth(discipline.attributes, currentState.level);
   const maxMana = deriveMaxMana(discipline.attributes, currentState.level);
+  const missing = discipline.starterItemIds.filter((itemId) =>
+    !currentState.inventory.some((entry) => entry.itemId === itemId));
+  const withStarters = grantItems(currentState, missing);
+  const equipment = { ...withStarters.equipment };
+  delete equipment.mainHand;
+  delete equipment.offHand;
+  delete equipment.chest;
+  for (const starter of starters) {
+    const entry = withStarters.inventory.find((candidate) => candidate.itemId === starter!.id)!;
+    for (const slot of starter!.occupies ?? [starter!.slot!]) equipment[slot] = entry;
+  }
 
   return {
-    ...currentState,
+    ...withStarters,
     discipline: disciplineId,
     disciplineRevision: CURRENT_DISCIPLINE_REVISION,
     attributes: { ...discipline.attributes },
@@ -155,19 +166,7 @@ export function chooseDiscipline(
     maxHealth,
     mana: maxMana,
     maxMana,
-    inventory: [
-      ...currentState.inventory,
-      ...starters
-        .map((starter) => starter!.id)
-        .filter((itemId) => !currentState.inventory.includes(itemId)),
-    ],
-    equipment: starters.reduce(
-      (equipment, starter) => ({
-        ...equipment,
-        [starter!.slot!]: starter!.id,
-      }),
-      { ...currentState.equipment },
-    ),
+    equipment,
     guarding: undefined,
     aiming: undefined,
     sneaking: undefined,

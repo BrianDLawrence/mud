@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { advanceCombat, createInitialCharacterState, executeCommand, XP_THRESHOLDS } from "./engine";
 import { chooseDiscipline, deriveMaxHealth, deriveMaxMana } from "./disciplines";
-import { effectiveAttributes } from "./items";
+import { effectiveAttributes, grantItems } from "./items";
 import { firstLightWorld } from "./world";
 import { disciplineIds } from "./types";
 
@@ -56,7 +56,7 @@ describe("expanded adventure", () => {
     expect(effectiveAttributes(state).might).toBe(5);
     state = executeCommand(state, "sell trail blade 1").state;
     expect(state.gold).toBe(80);
-    expect(state.inventory).not.toContain("trail-blade-1");
+    expect(state.inventory.map((entry) => entry.itemId)).not.toContain("trail-blade-1");
     expect(executeCommand({ ...state, gold: 0 }, "buy trail blade 5").state.gold).toBe(0);
   });
 
@@ -69,10 +69,11 @@ describe("expanded adventure", () => {
       state.maxHealth = state.health = deriveMaxHealth(state.attributes, level);
       state.maxMana = state.mana = deriveMaxMana(state.attributes, level);
       if (index > 0) {
-        for (const [slot, kind] of [["weapon", "blade"], ["armor", "armor"], ["focus", "focus"]] as const) {
+        for (const kind of ["blade", "armor", "greaves", "boots", "focus"] as const) {
           const id = `trail-${kind}-${index}`;
-          state.inventory.push(id);
-          state.equipment[slot] = id;
+          state = grantItems(state, [id]);
+          const slot = { blade: "mainHand", armor: "chest", greaves: "legs", boots: "feet", focus: "offHand" } as const;
+          state.equipment[slot[kind]] = state.inventory.at(-1)!;
         }
       }
       state.roomId = `${area}-boss`;
@@ -102,8 +103,9 @@ it("repeated encounters can carry a solo character to level ten", () => {
   state.level = 9;
   state.experience = XP_THRESHOLDS[8];
   state.maxHealth = state.health = 112;
-  state.equipment = { weapon: "trail-blade-4", armor: "trail-armor-4" };
-  state.inventory.push("trail-blade-4", "trail-armor-4");
+  state = grantItems(state, ["trail-blade-4", "trail-armor-4", "trail-greaves-4", "trail-boots-4"]);
+  state.equipment = { mainHand: state.inventory.at(-4), chest: state.inventory.at(-3),
+    legs: state.inventory.at(-2), feet: state.inventory.at(-1) };
   state.roomId = "crown-0";
   for (let round = 0; round < 20; round++) {
     state.health = state.maxHealth;

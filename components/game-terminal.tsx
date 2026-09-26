@@ -108,7 +108,7 @@ export function GameTerminal({
           "content-type": "application/json",
           ...(authToken ? { authorization: `Bearer ${authToken}` } : {}),
         },
-        body: JSON.stringify({ command: trimmed }),
+        body: JSON.stringify({ command: trimmed, compact: window.innerWidth < 700 }),
       });
       const payload = (await response.json()) as {
         messages?: GameMessage[];

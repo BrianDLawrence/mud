@@ -4,6 +4,7 @@ import { createInitialCharacterState, executeCommand } from "./engine";
 import { matchingTargets } from "./command-resolution";
 import { renderMap } from "./map";
 import { firstLightWorld } from "./world";
+import { grantItems } from "./items";
 
 const hero = () => chooseDiscipline(createInitialCharacterState(), "vanguard");
 const run = (command: string, roomId = "drowned-orchard") => executeCommand({ ...hero(), roomId }, command, { nowMs: 1000 });
@@ -18,7 +19,7 @@ describe("command abbreviations", () => {
     const abbreviated = executeCommand(state, "b blade 1");
     expect(abbreviated).toEqual(executeCommand(state, "buy trail blade 1"));
     expect(abbreviated.state.gold).toBe(70);
-    expect(abbreviated.state.inventory).toContain("trail-blade-1");
+    expect(abbreviated.state.inventory.map((entry) => entry.itemId)).toContain("trail-blade-1");
   });
 
   it("lists ambiguous purchases without spending gold or choosing a tier", () => {
@@ -36,10 +37,10 @@ describe("command abbreviations", () => {
     expect(run("ac black r", "lantern-inn").state.quests[0]?.questId).toBe("beneath-black-roots");
     expect(run("x tra", "rusted-gate").messages[0].text).toContain("Which do you mean?");
     expect(run("x trac", "rusted-gate").messages[0].text).toContain("three-legged");
-    let state = { ...hero(), inventory: [...hero().inventory, "trail-blade-1", "healing-draught", "healing-draught"], health: 20 };
+    let state = { ...grantItems(hero(), ["trail-blade-1", "healing-draught", "healing-draught"]), health: 20 };
     state = executeCommand(state, "equip blade 1").state;
-    expect(state.equipment.weapon).toBe("trail-blade-1");
-    expect(executeCommand(state, "uneq w").state.equipment.weapon).toBeUndefined();
+    expect(state.equipment.mainHand?.itemId).toBe("trail-blade-1");
+    expect(executeCommand(state, "uneq w").state.equipment.mainHand).toBeUndefined();
     expect(executeCommand(state, "use heal").state.health).toBe(60);
     const mage = { ...chooseDiscipline(createInitialCharacterState(), "arcanist"), roomId: "drowned-orchard" };
     expect(executeCommand(mage, "c e m", { nowMs: 1000 })).toEqual(executeCommand(mage, "cast ember crawler", { nowMs: 1000 }));
@@ -55,7 +56,7 @@ describe("command abbreviations", () => {
   it("does not target absent creatures, unstocked items or empty packs", () => {
     expect(run("a c", "lantern-inn").state.combat).toBeUndefined();
     expect(run("b blade 1", "apothecary").state.gold).toBe(15);
-    expect(run("equip blade 5").state.equipment.weapon).toBe("lantern-blade");
+    expect(run("equip blade 5").state.equipment.mainHand?.itemId).toBe("lantern-blade");
   });
 
   it("exact names win and ambiguous creature prefixes retain all choices", () => {

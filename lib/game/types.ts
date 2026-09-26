@@ -35,13 +35,18 @@ export interface CharacterAttributes {
   vitality: number;
 }
 
-export type EquipmentSlot = "weapon" | "armor" | "focus";
+export const equipmentSlots = [
+  "head", "neck", "back", "chest", "hands", "belt",
+  "legs", "feet", "mainHand", "offHand", "ring1", "ring2",
+] as const;
+export type EquipmentSlot = (typeof equipmentSlots)[number];
 
-export interface CharacterEquipment {
-  weapon?: string;
-  armor?: string;
-  focus?: string;
+export interface InventoryItem {
+  uid: string;
+  itemId: string;
 }
+
+export type CharacterEquipment = Partial<Record<EquipmentSlot, InventoryItem>>;
 
 export interface LootDrop {
   roomId: string;
@@ -85,7 +90,9 @@ export interface CharacterState {
   maxMana: number;
   experience: number;
   level: number;
-  inventory: string[];
+  inventory: InventoryItem[];
+  inventorySeed: string;
+  nextInventorySerial: number;
   equipment: CharacterEquipment;
   groundLoot: LootDrop[];
   quests: QuestProgress[];
@@ -96,7 +103,7 @@ export interface CharacterState {
   pvpEnabled?: boolean;
   pvpConfirmation?: string;
   nextPvpAttackAt?: number;
-  deathDrop?: { id: string; roomId: string; itemIds: string[]; gold: number };
+  deathDrop?: { id: string; roomId: string; items: InventoryItem[]; gold: number };
   deathDropPublishedId?: string;
   claimedDropIds?: string[];
   defeatedCreatureIds: string[];

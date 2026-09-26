@@ -1,4 +1,5 @@
 import { MongoServerError, type Collection } from "mongodb";
+import { randomUUID } from "node:crypto";
 import {
   createInitialCharacterState,
   normalizeCharacterState,
@@ -24,9 +25,9 @@ export interface GameStore {
   ): Promise<boolean>;
 }
 
-function cloneStoredCharacter(character: StoredCharacter): StoredCharacter {
+function cloneStoredCharacter(character: StoredCharacter, characterId: string): StoredCharacter {
   const clone = structuredClone(character);
-  return { ...clone, state: normalizeCharacterState(clone.state) };
+  return { ...clone, state: normalizeCharacterState(clone.state, characterId) };
 }
 
 export class MemoryGameStore implements GameStore {
@@ -35,7 +36,7 @@ export class MemoryGameStore implements GameStore {
 
   async get(characterId: string): Promise<StoredCharacter | null> {
     const existing = this.characters.get(characterId);
-    return existing ? cloneStoredCharacter(existing) : null;
+    return existing ? cloneStoredCharacter(existing, characterId) : null;
   }
 
   async create(
@@ -54,9 +55,9 @@ export class MemoryGameStore implements GameStore {
     if (nameTaken) return { created: false, reason: "name_taken" };
 
     if (previous) this.archived.set(`${characterId}:${previous.version}`, structuredClone(previous));
-    const created = { name, state: createInitialCharacterState(), version: (previous?.version ?? -1) + 1 };
+    const created = { name, state: createInitialCharacterState(randomUUID()), version: (previous?.version ?? -1) + 1 };
     this.characters.set(characterId, created);
-    return { created: true, character: cloneStoredCharacter(created) };
+    return { created: true, character: cloneStoredCharacter(created, characterId) };
   }
 
   async commit(
@@ -118,7 +119,7 @@ class MongoGameStore implements GameStore {
 
     return {
       name: character.name,
-      state: normalizeCharacterState(character.state),
+      state: normalizeCharacterState(character.state, characterId),
       version: character.version,
     };
   }
@@ -135,7 +136,7 @@ class MongoGameStore implements GameStore {
       await this.archive.updateOne({ _id: archiveId }, {
         $setOnInsert: { ...previous, _id: archiveId },
       }, { upsert: true });
-      const nextState = createInitialCharacterState();
+      const nextState = createInitialCharacterState(randomUUID());
       let replaced;
       try {
         replaced = await this.collection.updateOne(
@@ -160,7 +161,7 @@ class MongoGameStore implements GameStore {
       ownerId: characterId,
       name,
       normalizedName,
-      state: createInitialCharacterState(),
+      state: createInitialCharacterState(randomUUID()),
       version: 0,
       createdAt: now,
       updatedAt: now,
