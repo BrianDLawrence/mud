@@ -1,26 +1,14 @@
 import { NextResponse } from "next/server";
 import { advanceCombat } from "@/lib/game/engine";
+import { publishDeath, settleCharacter } from "@/lib/game/character-service";
+import { getRoomStore } from "@/lib/game/room-store";
 import { getPlayerCharacter } from "@/lib/game/player-character";
 import { getGameStore } from "@/lib/game/store";
-import type { CharacterState } from "@/lib/game/types";
+import { characterSummary } from "@/lib/game/summary";
 import { getAuthenticatedPlayer } from "@/lib/player-identity";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-function characterSummary(state: CharacterState) {
-  return {
-    discipline: state.discipline,
-    health: state.health,
-    maxHealth: state.maxHealth,
-    mana: state.mana,
-    maxMana: state.maxMana,
-    experience: state.experience,
-    level: state.level,
-    inCombat: Boolean(state.combat),
-    attacking: state.combat?.playerAttacking ?? false,
-  };
-}
 
 export async function POST(request: Request) {
   try {
@@ -33,6 +21,7 @@ export async function POST(request: Request) {
     }
 
     const store = getGameStore();
+    const roomStore = getRoomStore();
     for (let attempt = 0; attempt < 3; attempt += 1) {
       const ownedCharacter = await getPlayerCharacter(store, player);
       if (!ownedCharacter) {
@@ -42,17 +31,21 @@ export async function POST(request: Request) {
         );
       }
 
-      if (!ownedCharacter.character.state.combat) {
+      const settled = await settleCharacter(store, roomStore, ownedCharacter.id);
+      if (!settled) continue;
+      const current = settled.character;
+
+      if (!current.state.combat) {
         return NextResponse.json({
           messages: [],
-          character: characterSummary(ownedCharacter.character.state),
+          character: characterSummary(current.state),
         });
       }
 
-      const result = advanceCombat(ownedCharacter.character.state);
+      const result = advanceCombat(current.state);
       const changed =
         result.messages.length > 0 ||
-        Boolean(ownedCharacter.character.state.combat) !==
+        Boolean(current.state.combat) !==
           Boolean(result.state.combat);
       if (!changed) {
         return NextResponse.json({
@@ -63,10 +56,13 @@ export async function POST(request: Request) {
 
       const committed = await store.commit(
         ownedCharacter.id,
-        ownedCharacter.character.version,
+        current.version,
         result.state,
       );
       if (committed) {
+        if (result.state.deathDrop?.id !== current.state.deathDrop?.id) {
+          await publishDeath(store, roomStore, ownedCharacter.id, { ...current, state: result.state });
+        }
         return NextResponse.json({
           messages: result.messages,
           character: characterSummary(result.state),

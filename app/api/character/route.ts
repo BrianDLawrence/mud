@@ -5,11 +5,14 @@ import {
   normalizeCharacterName,
 } from "@/lib/game/character-name";
 import { getPlayerCharacter } from "@/lib/game/player-character";
+import { settleCharacter } from "@/lib/game/character-service";
+import { getRoomStore } from "@/lib/game/room-store";
 import {
   chooseDiscipline,
   CURRENT_DISCIPLINE_REVISION,
 } from "@/lib/game/disciplines";
 import { getGameStore } from "@/lib/game/store";
+import { characterSummary } from "@/lib/game/summary";
 import {
   disciplineIds,
   type CharacterProfile,
@@ -32,17 +35,7 @@ function toProfile(id: string, character: StoredCharacter): CharacterProfile {
     disciplineSelectionRequired:
       !character.state.discipline ||
       character.state.disciplineRevision < CURRENT_DISCIPLINE_REVISION,
-    summary: {
-      discipline: character.state.discipline,
-      health: character.state.health,
-      maxHealth: character.state.maxHealth,
-      mana: character.state.mana,
-      maxMana: character.state.maxMana,
-      experience: character.state.experience,
-      level: character.state.level,
-      inCombat: Boolean(character.state.combat),
-      attacking: character.state.combat?.playerAttacking ?? false,
-    },
+    summary: characterSummary(character.state),
   };
 }
 
@@ -53,12 +46,13 @@ export async function GET(request: Request) {
   }
 
   const ownedCharacter = await getPlayerCharacter(getGameStore(), player);
-  if (!ownedCharacter) {
+  const settled = ownedCharacter ? await settleCharacter(getGameStore(), getRoomStore(), ownedCharacter.id) : null;
+  if (!ownedCharacter || !settled || settled.character.state.lifeState === "permadead") {
     return NextResponse.json({ character: null });
   }
 
   return NextResponse.json({
-    character: toProfile(ownedCharacter.id, ownedCharacter.character),
+    character: toProfile(ownedCharacter.id, settled.character),
   });
 }
 
@@ -79,7 +73,7 @@ export async function POST(request: Request) {
 
   const store = getGameStore();
   const existing = await getPlayerCharacter(store, player);
-  if (existing) {
+  if (existing && existing.character.state.lifeState !== "permadead") {
     return NextResponse.json(
       { character: toProfile(existing.id, existing.character) },
       { status: 409 },
@@ -136,6 +130,13 @@ export async function PATCH(request: Request) {
       return NextResponse.json(
         { error: "Create a character before choosing a discipline." },
         { status: 404 },
+      );
+    }
+
+    if ((ownedCharacter.character.state.lifeState ?? "alive") !== "alive") {
+      return NextResponse.json(
+        { error: "A helpless or dead character cannot change discipline." },
+        { status: 409 },
       );
     }
 

@@ -33,7 +33,9 @@ The roadmap is ordered by risk reduction rather than feature count.
 - [x] `WHO`, `SAY`, and `EMOTE` multiplayer commands
 - [x] Durable command and social rate limits
 - [x] Attributes, six disciplines, armor training, equipment, and derived statistics
-- [x] Timed automatic combat, stop/resume, criticals, multi-hit speed, level-ups, and death recovery
+- [x] Timed automatic creature combat, stop/resume, criticals, multi-hit speed, and level-ups
+- [x] Dying, aid, nine lives, shared death drops, resurrection, and permanent character death
+- [x] Visible room players, stealth-aware movement, and manual PvP attacks
 - [x] First NPC quest, loot drops, and level 1–3 boss journey
 - Encounter initiative, active cooldown abilities, and respawns
 - Shops and economy

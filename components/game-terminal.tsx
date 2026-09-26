@@ -74,6 +74,12 @@ export function GameTerminal({
       return;
     }
 
+    if (["recreate", "new character"].includes(trimmed.toLocaleLowerCase()) &&
+      character.lifeState === "permadead") {
+      window.location.reload();
+      return;
+    }
+
     if (["logout", "quit", "signout"].includes(trimmed.toLocaleLowerCase())) {
       setBusy(true);
       try {
@@ -127,7 +133,7 @@ export function GameTerminal({
     } finally {
       setBusy(false);
     }
-  }, [authToken, busy, departRoom, onSignOut]);
+  }, [authToken, busy, character.lifeState, departRoom, onSignOut]);
 
   useEffect(() => {
     if (initializedRef.current) return;
@@ -145,14 +151,17 @@ export function GameTerminal({
       });
       const payload = (await response.json()) as {
         cursor?: string | null;
+        character?: CharacterSummary;
+        messages?: GameMessage[];
         error?: string;
       };
       if (!response.ok) {
         throw new Error(payload.error || "Room presence failed.");
       }
-      if (roomCursorRef.current === null && payload.cursor) {
-        roomCursorRef.current = payload.cursor;
-      }
+      const firstHeartbeat = roomCursorRef.current === null;
+      if (firstHeartbeat && payload.cursor) roomCursorRef.current = payload.cursor;
+      if (payload.character) setCharacter(payload.character);
+      if (firstHeartbeat && payload.messages?.length) setMessages((current) => [...current, ...payload.messages!]);
     }
 
     async function pollEvents() {
@@ -168,12 +177,16 @@ export function GameTerminal({
         const payload = (await response.json()) as {
           cursor?: string | null;
           events?: RoomEventView[];
+          character?: CharacterSummary;
+          messages?: GameMessage[];
           error?: string;
         };
         if (!response.ok || !payload.events) {
           throw new Error(payload.error || "Room events failed.");
         }
         if (payload.cursor) roomCursorRef.current = payload.cursor;
+        if (payload.character) setCharacter(payload.character);
+        if (payload.messages?.length) setMessages((current) => [...current, ...payload.messages!]);
         if (payload.events.length > 0) {
           setMessages((current) => [
             ...current,
@@ -342,6 +355,8 @@ export function GameTerminal({
         <span>{characterProfile.name.toLocaleUpperCase()}</span>
         <span>LVL {character.level}</span>
         <span>HP {character.health}/{character.maxHealth}</span>
+        <span>{character.lifeState === "alive" ? `${character.livesRemaining} LIVES` : character.lifeState.toUpperCase()}</span>
+        <span>PVP {character.pvpEnabled ? "ON" : "OFF"}</span>
         {character.maxMana > 0 ? <span>MP {character.mana}/{character.maxMana}</span> : null}
         <span>XP {character.experience}</span>
         {character.inCombat ? (
