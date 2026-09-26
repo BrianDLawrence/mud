@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { grantItems } from "./items";
 import { chooseDiscipline } from "@/lib/game/disciplines";
 import { handleMultiplayerCommand } from "@/lib/game/multiplayer";
 import { heartbeatRoom } from "@/lib/game/room-service";
@@ -43,12 +44,11 @@ describe("player interactions", () => {
     expect(aid?.messages[0].text).toContain("aid Bob");
     expect((await store.get("bob"))?.state.receivingAid).toBe(true);
     const alice = (await store.get("alice"))!;
-    await store.commit("alice", alice.version, { ...alice.state,
-      inventory: [...alice.state.inventory, "healing-draught"] });
+    await store.commit("alice", alice.version, grantItems(alice.state, ["healing-draught"]));
     const healed = await handleMultiplayerCommand(store, room, "alice", (await store.get("alice"))!,
       "use healing draught on Bob", now);
     expect(healed?.messages[0].text).toContain("heal Bob");
     expect((await store.get("bob"))?.state.lifeState).toBe("alive");
-    expect((await store.get("alice"))?.state.inventory).not.toContain("healing-draught");
+    expect((await store.get("alice"))?.state.inventory.map((entry) => entry.itemId)).not.toContain("healing-draught");
   });
 });

@@ -1,7 +1,7 @@
 import { matchingTargets } from "@/lib/game/command-resolution";
 import { publishDeath, settleCharacter } from "@/lib/game/character-service";
 import { magicHealingReceived, playerAttackIntervalMs } from "@/lib/game/engine";
-import { effectiveAttributes, equipmentArmor, equipmentPower, findCarriedItem, itemName } from "@/lib/game/items";
+import { effectiveAttributes, equipmentArmor, equipmentPower, findCarriedEntry, getItem, itemName } from "@/lib/game/items";
 import { aidCharacter, applyDamage, healCharacter } from "@/lib/game/mortality";
 import { canNotice, heartbeatRoom } from "@/lib/game/room-service";
 import type { RoomOccupant, RoomStore } from "@/lib/game/room-store";
@@ -148,7 +148,8 @@ export async function handleMultiplayerCommand(
     return { state, messages: [msg("status", `You aid ${target.name}. Their HP will rise each 30 seconds until they recover.`)] };
   }
 
-  const item = itemMatch ? findCarriedItem(state, itemMatch[1]) : undefined;
+  const entry = itemMatch ? findCarriedEntry(state, itemMatch[1]) : undefined;
+  const item = entry ? getItem(entry.itemId) : undefined;
   if (itemMatch && (!item || !item.heal)) return { state, messages: [msg("error", "You need a carried healing item to use on a player.")] };
   if (praying && (state.discipline !== "paladin" || state.mana < 6)) return { state,
     messages: [msg("error", "Only a Paladin with 6 mana can Pray for another player.")] };
@@ -158,7 +159,7 @@ export async function handleMultiplayerCommand(
       targetBefore.state.health >= targetBefore.state.maxHealth) return { state,
         messages: [msg("error", `${target.name} cannot be healed here.`)] };
   const next = { ...state, mana: praying ? state.mana - 6 : state.mana,
-    inventory: item ? state.inventory.filter((_, index) => index !== state.inventory.indexOf(item.id)) : state.inventory };
+    inventory: entry ? state.inventory.filter((owned) => owned.uid !== entry.uid) : state.inventory };
   if (!await commitOwn(store, actorId, character, next)) throw new Error("Character changed during healing");
   async function refundHealing() {
     for (let attempt = 0; attempt < 3; attempt += 1) {
@@ -166,7 +167,7 @@ export async function handleMultiplayerCommand(
       if (!current) break;
       const refund = { ...current.state,
         mana: praying ? current.state.mana + 6 : current.state.mana,
-        inventory: item ? [...current.state.inventory, item.id] : current.state.inventory };
+        inventory: entry ? [...current.state.inventory, entry] : current.state.inventory };
       if (await store.commit(actorId, current.version, refund)) return refund;
     }
     throw new Error("Healing did not reach the target and the resource refund needs recovery");

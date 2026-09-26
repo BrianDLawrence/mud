@@ -79,7 +79,7 @@ Production web authentication uses Better Auth with its MongoDB adapter and Disc
 
 Account identity, account handle, and character name are separate concepts. Availability endpoints improve UX, while MongoDB unique indexes provide the actual uniqueness guarantee. Handles are normalized for comparison and preserved separately for display.
 
-Character reads pass through a backward-compatible normalizer. Fields added by the First Adventure receive safe defaults and legacy inventory labels become stable item IDs. A later successful optimistic commit stores the upgraded shape without a deployment-time migration.
+Character reads pass through a backward-compatible normalizer. Legacy inventory labels become stable item IDs, and each physical copy receives a unique ID. Legacy weapon, armor, and focus references map to the expanded equipment slots; trail armor gains matching greaves and boots so existing combat totals are preserved. A later successful optimistic commit stores the upgraded shape without a deployment-time migration. Public death drops retain copy IDs across loot transfers, with old drop records readable until collected.
 
 ## Events and rendering
 

@@ -59,8 +59,8 @@ describe("character progression", () => {
     expect(state.attributes.intellect).toBe(5);
     expect(state.maxHealth).toBe(46);
     expect(state.maxMana).toBe(28);
-    expect(state.equipment.focus).toBe("ash-staff");
-    expect(state.inventory).toContain("ash-staff");
+    expect(state.equipment.mainHand?.itemId).toBe("ash-staff");
+    expect(state.inventory.map((entry) => entry.itemId)).toContain("ash-staff");
     expect(chooseDiscipline(state, "vanguard")).toEqual(state);
   });
 
@@ -70,16 +70,16 @@ describe("character progression", () => {
     const rogue = adventurer("rogue");
 
     expect(paladin.equipment).toMatchObject({
-      weapon: "sunward-mace",
-      armor: "sunward-mail",
+      mainHand: expect.objectContaining({ itemId: "sunward-mace" }),
+      chest: expect.objectContaining({ itemId: "sunward-mail" }),
     });
     expect(paladin.maxMana).toBeGreaterThan(0);
-    expect(witchHunter.equipment.armor).toBe("hexhide-coat");
+    expect(witchHunter.equipment.chest?.itemId).toBe("hexhide-coat");
     expect(witchHunter.maxMana).toBe(0);
     expect(magicHealingReceived(witchHunter, 14)).toBe(7);
     expect(rogue.equipment).toMatchObject({
-      weapon: "gutter-knife",
-      armor: "nightweave-vest",
+      mainHand: expect.objectContaining({ itemId: "gutter-knife" }),
+      chest: expect.objectContaining({ itemId: "nightweave-vest" }),
     });
     expect(rogue.attributes.agility).toBe(7);
   });
@@ -115,8 +115,8 @@ describe("character progression", () => {
 
     expect(state.health).toBe(27);
     expect(state.experience).toBe(18);
-    expect(state.inventory).toEqual(["traveler-cloak", "copper-coins"]);
-    expect(state.equipment.armor).toBe("traveler-cloak");
+    expect(state.inventory.map((entry) => entry.itemId)).toEqual(["traveler-cloak", "copper-coins"]);
+    expect(state.equipment.back?.itemId).toBe("traveler-cloak");
     expect(state.groundLoot).toEqual([]);
     expect(state.discipline).toBeUndefined();
   });
@@ -170,9 +170,9 @@ describe("command engine", () => {
     expect(secondVolley.state.defeatedCreatureIds).toContain("marsh-crawler");
 
     const looted = executeCommand(secondVolley.state, "loot");
-    expect(looted.state.inventory).toContain("crawler-chitin");
+    expect(looted.state.inventory.map((entry) => entry.itemId)).toContain("crawler-chitin");
     const equipped = executeCommand(looted.state, "equip crawler chitin");
-    expect(equipped.state.equipment.armor).toBe("crawler-chitin");
+    expect(equipped.state.equipment.chest?.itemId).toBe("crawler-chitin");
   });
 
   it("gives each discipline a distinct combat ability", () => {
@@ -266,7 +266,7 @@ describe("command engine", () => {
 
     expect(completed.state.level).toBe(3);
     expect(completed.state.experience).toBe(200);
-    expect(completed.state.inventory).toContain("pale-heart-charm");
+    expect(completed.state.inventory.map((entry) => entry.itemId)).toContain("pale-heart-charm");
     expect(completed.state.quests[0]?.status).toBe("completed");
     expect(completed.messages.some((entry) => entry.text.includes("QUEST COMPLETE"))).toBe(true);
   });

@@ -12,7 +12,7 @@ export async function publishDeath(
   const drop = character.state.deathDrop;
   if (!drop || character.state.deathDropPublishedId === drop.id) return character;
   const id = `${characterId}:${drop.id}`;
-  await roomStore.putDrop({ id, roomId: drop.roomId, itemIds: drop.itemIds,
+  await roomStore.putDrop({ id, roomId: drop.roomId, items: drop.items,
     gold: drop.gold, ownerName: character.name });
   await roomStore.appendEvent({
     roomId: drop.roomId,

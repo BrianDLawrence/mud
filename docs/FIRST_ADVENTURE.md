@@ -20,9 +20,9 @@ Lanternwick has a smith on Market Lane (east of the inn) and an apothecary east 
 
 ## Equipment and supplies
 
-INVENTORY uses an ANSI panel with equipped slots, gear bonuses, grouped backpack stacks, gold, and [E] markers. EQUIPMENT shows a text figure, occupied weapon/armor/focus slots, power and armor. EQUIP <item> replaces a slot without deleting the old item; UNEQUIP <slot> returns it to the pack. Armor training and discipline restrictions still apply.
+INVENTORY uses a colored ANSI body layout with 12 equipment slots: head, neck, back, chest, hands, belt, legs, feet, main hand, off hand, and two rings. It shows gold, gear totals, and backpack stacks of unequipped copies. EQUIPMENT shows the same body layout without the backpack. Narrow screens use a single-column view. EQUIP <item> replaces occupied slots without deleting old items; EQUIP <ring> RING1 or RING2 selects a ring slot, and UNEQUIP <slot> returns an item to the pack. A two hand staff occupies both hand slots. Armor training and discipline restrictions still apply.
 
-Five tiers of trail equipment provide increasing weapon/focus power and armor. Blades add Might, foci add Intellect, and armor adds Agility. Guardian loot supplies all three choices so every discipline can progress. Bonuses are derived from equipped items, never permanently added to base attributes, preventing equip/unequip stacking.
+Five tiers of trail equipment provide increasing weapon/focus power and armor. Blades add Might, foci add Intellect, and chest armor, greaves, and boots together retain the previous trail armor total for existing characters. Guardian loot supplies the matching pieces. The smith also stocks a helm, gloves, belt, shield, pendant, and rings. Bonuses are derived from unique equipped copies, never permanently added to base attributes, preventing equip/unequip stacking.
 
 USE healing draught restores 40 HP; USE mana draught restores 24 MP. Supplies and equipment changes are available outside combat. Full resources do not consume a draught. REST remains a free recovery option outside combat. A player can flee, recover and retry.
 
@@ -36,7 +36,7 @@ STATS uses an ANSI panel with HP/MP/XP bars, exact resource values, and separate
 - Vitality sets initial maximum health: 34 + 6 × Vitality. Each level adds 6 HP. Mana users gain 4 MP per level. Level-ups fully restore resources.
 - Armor reduces physical damage; class magic resistance applies to magic damage. Existing discipline abilities remain available.
 
-Cumulative XP thresholds: 0, 100, 200, 600, 1400, 2800, 4800, 7600, 11200, 16000. This preserves the original level-three opening and stretches later progression. Ordinary creatures return after three minutes; guardians after ten minutes. Timers use server time and persist per character. Permanent kill history separately records quest objectives. Defeat preserves XP, gold, items and quest progress.
+Cumulative XP thresholds: 0, 100, 200, 600, 1400, 2800, 4800, 7600, 11200, 16000. This preserves the original level-three opening and stretches later progression. Ordinary creatures return after three minutes; guardians after ten minutes. Timers use server time and persist per character. Permanent kill history separately records quest objectives. Death preserves XP and quest progress; items and gold fall into a public room drop.
 
 ## Pacing and validation
 

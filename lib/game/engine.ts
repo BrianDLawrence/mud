@@ -1,4 +1,4 @@
-import { renderInventory, renderStats } from "@/lib/game/ansi-views";
+import { renderEquipment, renderInventory, renderStats } from "@/lib/game/ansi-views";
 import { INTRO_ART } from "@/lib/game/intro";
 import { resolveCommand } from "@/lib/game/command-resolution";
 import { renderAnsiMap } from "@/lib/game/map";
@@ -11,9 +11,13 @@ import {
   equipmentArmor,
   equipmentPower,
   findCarriedItem,
+  findCarriedEntry,
+  grantItems,
+  isEquipped,
   itemName,
 } from "@/lib/game/items";
-import type { CharacterState, CommandResult, GameMessage } from "@/lib/game/types";
+import type { CharacterState, CommandResult, EquipmentSlot, GameMessage } from "@/lib/game/types";
+import { equipmentSlots } from "@/lib/game/types";
 import { firstLightWorld, getRoom } from "@/lib/game/world";
 import type { Creature, Npc, Quest, Room } from "@/lib/game/world-schema";
 
@@ -42,7 +46,7 @@ const helpText = [
   "loot",
   "inventory",
   "equipment",
-  "equip <item>", "unequip <slot>", "shop / buy <item> / sell <item>", "use <item> [on player]", "search", "map",
+  "equip <item> [ring1/ring2]", "unequip <slot>", "shop / buy <item> / sell <item>", "use <item> [on player]", "search", "map",
   "talk <person>",
   "accept <quest>",
   "quests",
@@ -830,7 +834,7 @@ function loot(state: CharacterState): CommandResult {
   return {
     state: {
       ...state,
-      inventory: [...state.inventory, ...itemIds],
+      ...grantItems(state, itemIds),
       groundLoot: state.groundLoot.filter((drop) => drop.roomId !== state.roomId),
     },
     messages: [
@@ -841,19 +845,24 @@ function loot(state: CharacterState): CommandResult {
 
 function equip(state: CharacterState, target: string): CommandResult {
   if (state.combat) return { state, messages: [message("error", "Finish the fight before changing equipment.")] };
-  const item = findCarriedItem(state, target);
+  const ringMatch = /\s+(ring[12])$/i.exec(target);
+  const requestedSlot = ringMatch?.[1].toLowerCase() as EquipmentSlot | undefined;
+  const itemTarget = ringMatch ? target.slice(0, -ringMatch[0].length) : target;
+  const entry = findCarriedEntry(state, itemTarget);
+  const item = entry ? getItem(entry.itemId) : undefined;
   if (!item) {
     return {
       state,
       messages: [message("error", `You do not carry "${target || "that"}".`)],
     };
   }
-  if (!item.slot) {
+  if (!item.slot || !entry) {
     return {
       state,
       messages: [message("error", `${item.name} cannot be equipped.`)],
     };
   }
+  if (requestedSlot && item.slot !== "ring1") return { state, messages: [message("error", "Only rings can select RING1 or RING2.")] };
   if (item.discipline && item.discipline !== state.discipline) {
     return {
       state,
@@ -878,12 +887,21 @@ function equip(state: CharacterState, target: string): CommandResult {
     }
   }
 
+  const slot = item.slot === "ring1" ? requestedSlot ?? (!state.equipment.ring1 ? "ring1" : !state.equipment.ring2 ? "ring2" : "ring1") : item.slot;
+  const occupies = item.occupies ?? [slot];
+  const equipment = { ...state.equipment };
+  for (const occupied of occupies) {
+    const displaced = equipment[occupied];
+    if (displaced) for (const key of equipmentSlots) if (equipment[key]?.uid === displaced.uid) delete equipment[key];
+  }
+  if (isEquipped(equipment, entry)) for (const key of equipmentSlots) if (equipment[key]?.uid === entry.uid) delete equipment[key];
+  for (const occupied of occupies) equipment[occupied] = entry;
   return {
     state: {
       ...state,
-      equipment: { ...state.equipment, [item.slot]: item.id },
+      equipment,
     },
-    messages: [message("status", `You equip ${item.name} as your ${item.slot}.`)],
+    messages: [message("status", `You equip ${item.name} as your ${occupies.join(" and ")}.`)],
   };
 }
 
@@ -897,13 +915,12 @@ function completeQuest(
 ): CommandResult {
   const rewarded = awardExperience(
     {
-      ...state,
+      ...grantItems(state, quest.reward.itemIds),
       quests: state.quests.map((progress) =>
         progress.questId === quest.id
           ? { ...progress, status: "completed" as const }
           : progress,
       ),
-      inventory: [...state.inventory, ...quest.reward.itemIds],
     },
     quest.reward.experience,
   );
@@ -1042,23 +1059,9 @@ function abilityMessages(state: CharacterState): GameMessage[] {
   ];
 }
 
-function equipmentMessages(state: CharacterState): GameMessage[] {
-  const slots = (["weapon", "armor", "focus"] as const)
-    .map((slot) => `${slot.toUpperCase().padEnd(6)}: ${state.equipment[slot] ? itemName(state.equipment[slot]!) : "none"}`)
-    .join("\n");
-  return [
-    message("status", `    O\n   /|\\   EQUIPPED\n   / \\\n${slots}`),
-    message(
-      "system",
-      `Weapon power ${equipmentPower(state.equipment, "weapon")} | Focus power ${equipmentPower(state.equipment, "focus")} | Armor ${equipmentArmor(state.equipment)} · Training ${
-        state.discipline ? disciplines[state.discipline].armorTraining : "none"
-      }.`,
-    ),
-  ];
-}
-
 interface ExecuteCommandOptions {
   nowMs?: number;
+  compact?: boolean;
 }
 
 export function executeCommand(
@@ -1248,7 +1251,7 @@ export function executeCommand(
       return loot(state);
     case "equipment":
     case "eq":
-      return { state, messages: equipmentMessages(state) };
+      return { state, messages: [{ tone: "status", format: "ansi", label: "Equipment", text: renderEquipment(state, options.compact) }] };
     case "equip":
       return equip(state, argument);
     case "talk":
@@ -1289,7 +1292,7 @@ export function executeCommand(
     case "inventory":
     case "inv":
     case "i":
-      return { state, messages: [{ tone: "status", format: "ansi", label: "Inventory", text: renderInventory(state) }] };
+      return { state, messages: [{ tone: "status", format: "ansi", label: "Inventory", text: renderInventory(state, options.compact) }] };
     case "say":
       return {
         state,
@@ -1331,9 +1334,11 @@ function manageInventory(state: CharacterState, verb: string, target: string): C
   const reply = (text: string, error = false): CommandResult => ({ state, messages: [message(error ? "error" : "status", text)] });
   if (state.combat) return reply("Finish the fight before managing supplies.", true);
   if (verb === "unequip") {
-    const slot = target.toLowerCase() as keyof typeof state.equipment;
-    if (!["weapon", "armor", "focus"].includes(slot) || !state.equipment[slot]) return reply("UNEQUIP weapon, armor, or focus (an occupied slot).", true);
-    delete state.equipment[slot];
+    const aliases: Record<string, EquipmentSlot> = { weapon: "mainHand", armor: "chest", focus: "offHand" };
+    const slot = aliases[target.toLowerCase()] ?? equipmentSlots.find((candidate) => candidate.toLowerCase() === target.toLowerCase());
+    if (!slot || !state.equipment[slot]) return reply("Name an occupied equipment slot to UNEQUIP.", true);
+    const uid = state.equipment[slot]!.uid;
+    for (const key of equipmentSlots) if (state.equipment[key]?.uid === uid) delete state.equipment[key];
     return reply(`You unequip your ${slot}. The item remains in your pack.`);
   }
   const shop = getRoom(state.roomId).shop;
@@ -1344,15 +1349,16 @@ function manageInventory(state: CharacterState, verb: string, target: string): C
     if (!item?.price) return reply("That item is not stocked. Type SHOP.", true);
     if (state.gold < item.price) return reply(`You need ${item.price} gold; you have ${state.gold}.`, true);
     state.gold -= item.price;
-    state.inventory.push(item.id);
+    state = grantItems(state, [item.id]);
     return reply(`Bought ${item.name}. Gold: ${state.gold}.`);
   }
-  const item = findCarriedItem(state, target);
-  if (!item) return reply("You do not carry that item.", true);
+  const entry = findCarriedEntry(state, target);
+  const item = entry ? getItem(entry.itemId) : undefined;
+  if (!item || !entry) return reply("You do not carry that item.", true);
   if (verb === "sell") {
-    if (Object.values(state.equipment).includes(item.id)) return reply("Unequip that item before selling it.", true);
+    if (isEquipped(state.equipment, entry)) return reply("Unequip that item before selling it.", true);
     const price = Math.max(1, Math.floor((item.price ?? 6) / 3));
-    state.inventory.splice(state.inventory.indexOf(item.id), 1);
+    state.inventory.splice(state.inventory.findIndex((owned) => owned.uid === entry.uid), 1);
     state.gold += price;
     return reply(`Sold ${item.name} for ${price} gold. Gold: ${state.gold}.`);
   }
@@ -1360,6 +1366,6 @@ function manageInventory(state: CharacterState, verb: string, target: string): C
   if ((!item.heal || state.health === state.maxHealth) && (!item.manaRestore || state.mana === state.maxMana)) return reply("Your resources are already full; the draught is saved.", true);
   state.health = Math.min(state.maxHealth, state.health + (item.heal ?? 0));
   state.mana = Math.min(state.maxMana, state.mana + (item.manaRestore ?? 0));
-  state.inventory.splice(state.inventory.indexOf(item.id), 1);
+  state.inventory.splice(state.inventory.findIndex((owned) => owned.uid === entry.uid), 1);
   return reply(`Used ${item.name}. HP ${state.health}/${state.maxHealth}; MP ${state.mana}/${state.maxMana}.`);
 }

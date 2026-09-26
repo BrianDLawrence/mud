@@ -7,6 +7,7 @@ import { renderAnsiMap } from "./map";
 import { chooseDiscipline } from "./disciplines";
 import { createInitialCharacterState, executeCommand } from "./engine";
 import { parseAnsi } from "./ansi";
+import { grantItems } from "./items";
 
 const hero = () => chooseDiscipline(createInitialCharacterState(), "vanguard");
 const metrics = { hits: 1, intervalMs: 2800, critical: 11, levelFloor: 0, nextLevel: 100 };
@@ -26,28 +27,29 @@ describe("ANSI game panels", () => {
 
   it("groups stacks and shows equipped stats without miscounting copies", () => {
     const state = hero();
-    state.inventory.push("healing-draught", "healing-draught", "trail-blade-1");
-    state.equipment.weapon = "trail-blade-1";
-    const text = plainAnsi(renderInventory(state));
-    expect(text).toContain("PWR 5  +1 MIG");
-    expect(text).toMatch(/\[E\] trail blade 1\s+x1/);
-    expect(text).toMatch(/\[ \] healing draught\s+x2/);
+    const stocked = grantItems(state, ["healing-draught", "healing-draught", "trail-blade-1"]);
+    stocked.equipment.mainHand = stocked.inventory.at(-1);
+    const text = plainAnsi(renderInventory(stocked));
+    expect(text).toContain("Weapon 5");
+    expect(text).toContain("trail blade 1");
+    expect(text).toMatch(/healing draught\s+x2/);
     expect(text.match(/healing draught/g)).toHaveLength(1);
-    expect(text).toContain(`${state.inventory.length} items`);
-    expect(plainAnsi(renderInventory({ ...state, inventory: [], equipment: {}, gold: 0 }))).toContain("Your pack is empty.");
+    expect(text).toContain(`${stocked.inventory.length} carried`);
+    expect(plainAnsi(renderInventory({ ...stocked, inventory: [], equipment: {}, gold: 0 }))).toContain("Your pack is empty.");
   });
 
   it("shows exact resource values, gear totals, and within-level XP progress", () => {
     const state = hero();
     state.level = 3; state.experience = 400; state.health = 32;
-    state.equipment.weapon = "trail-blade-1";
-    const text = plainAnsi(renderStats(state, { ...metrics, levelFloor: 200, nextLevel: 600 }));
+    const geared = grantItems(state, ["trail-blade-1"]);
+    geared.equipment.mainHand = geared.inventory.at(-1);
+    const text = plainAnsi(renderStats(geared, { ...metrics, levelFloor: 200, nextLevel: 600 }));
     expect(text).toContain("32/64");
     expect(text).toContain("No mana pool");
     expect(text).toMatch(/MIGHT\s+5\s+\+1\s+6/);
     expect(text).toContain("200 XP to level 4");
     expect(text).toMatch(/XP  █{10}░{10}/);
-    const max = plainAnsi(renderStats({ ...state, level: 10, experience: 16000 }, { ...metrics, nextLevel: undefined }));
+    const max = plainAnsi(renderStats({ ...geared, level: 10, experience: 16000 }, { ...metrics, nextLevel: undefined }));
     expect(max).toContain("MAX LEVEL");
     expect(max).not.toContain("NaN");
   });
